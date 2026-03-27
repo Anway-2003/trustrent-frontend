@@ -3,16 +3,21 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Home, User, LogOut, Settings, Plus, Search, MessageCircle, Star } from 'lucide-react';
+import { 
+  Home, User, Settings, Plus, Search, MessageCircle, 
+  Star, Building, CheckCircle2, MapPin, ExternalLink, Activity
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isLoggedIn, isLoading, logout } = useAuth();
+  const { user, isLoggedIn, isLoading } = useAuth();
   
-  // Navin State: Properties count thevnyasti
-  const [activePropertiesCount, setActivePropertiesCount] = useState(0);
+  // Real Data States
+  const [properties, setProperties] = useState<any[]>([]);
+  const [stats, setStats] = useState({ total: 0, active: 0, rented: 0 });
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -20,32 +25,36 @@ export default function DashboardPage() {
     }
   }, [isLoading, isLoggedIn, router]);
 
-  // Navin useEffect: Backend kadun properties ghenyasti
+  // 👈 FIX: Backend kadun fakt ya Owner chya properties ghenyasti
   useEffect(() => {
-    if (user?.role === 'LANDLORD') {
-      fetch('http://localhost:8080/api/properties')
+    if (user?.role === 'LANDLORD' && user?.id) {
+      setIsFetching(true);
+      fetch(`http://localhost:8080/api/properties/owner/${user.id}`)
         .then((res) => {
           if (!res.ok) throw new Error('Network error');
           return res.json();
         })
         .then((data) => {
-          // Fakt "available: true" aslelya properties count kar
-          const activeCount = data.filter((p: any) => p.available).length;
-          setActivePropertiesCount(activeCount);
+          // Navin properties aadhi dakhvnyasti reverse kelay
+          const sortedData = data.reverse();
+          setProperties(sortedData);
+          
+          const activeCount = sortedData.filter((p: any) => p.available).length;
+          setStats({
+            total: sortedData.length,
+            active: activeCount,
+            rented: sortedData.length - activeCount
+          });
         })
-        .catch((err) => console.error("Properties count fetch error:", err));
+        .catch((err) => console.error("Properties fetch error:", err))
+        .finally(() => setIsFetching(false));
     }
   }, [user]);
-
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -57,242 +66,231 @@ export default function DashboardPage() {
   const isLandlord = user.role === 'LANDLORD';
   const isTenant = user.role === 'TENANT';
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation onLogout={handleLogout} />
+      <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        
         {/* Welcome Section */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className={`h-16 w-16 rounded-full flex items-center justify-center ${
-                    isLandlord ? 'bg-green-100' : 'bg-blue-100'
-                  }`}>
-                    {isLandlord ? (
-                      <Home className="h-8 w-8 text-green-600" />
-                    ) : (
-                      <User className="h-8 w-8 text-blue-600" />
-                    )}
+        <div className="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 mb-8">
+          <div className="px-6 py-8">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className={`h-20 w-20 rounded-full flex items-center justify-center ${
+                  isLandlord ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                }`}>
+                  {isLandlord ? <Building className="h-10 w-10" /> : <User className="h-10 w-10" />}
+                </div>
+              </div>
+              <div className="ml-6 flex-1">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Welcome back, {user.firstName}! 👋
+                </h2>
+                <p className="text-gray-500 mt-1">
+                  {isLandlord ? 'Manage your properties and track your rental business.' : 'Find the perfect home and manage your saved properties.'}
+                </p>
+              </div>
+              <div className="ml-6 flex-shrink-0 hidden md:block">
+                {user.verified ? (
+                  <div className="flex items-center bg-green-50 px-4 py-2 rounded-full border border-green-100">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm text-green-700 font-bold">Verified Account</span>
                   </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Welcome, {user.firstName}!
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {isLandlord ? 'Manage your properties' : 'Find the perfect home'}
-                    </dd>
-                  </dl>
-                </div>
-                <div className="ml-5 flex-shrink-0">
-                  {user.verified ? (
-                    <div className="flex items-center">
-                      <Star className="h-5 w-5 text-yellow-400" />
-                      <span className="ml-1 text-sm text-green-600 font-medium">Verified</span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-yellow-600 font-medium">Pending verification</span>
-                  )}
-                </div>
+                ) : (
+                  <Link href="/profile" className="flex items-center bg-yellow-50 px-4 py-2 rounded-full border border-yellow-100 hover:bg-yellow-100 transition-colors">
+                    <Activity className="h-5 w-5 text-yellow-600 mr-2" />
+                    <span className="text-sm text-yellow-700 font-bold">Complete Profile</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="px-4 py-6 sm:px-0">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {isLandlord ? (
-              <>
-                <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-green-500 rounded-lg shadow hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-green-50 text-green-600 ring-4 ring-white">
-                      <Plus className="h-6 w-6" />
-                    </span>
+        {/* 🌟 REAL STATS OVERVIEW (Landlord Only) */}
+        {isLandlord && (
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <Activity className="h-5 w-5 mr-2 text-blue-600" /> Business Overview
+            </h3>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+                <div className="flex items-center">
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <Building className="h-6 w-6 text-blue-600" />
                   </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium">
-                      <Link href="/properties/new" className="focus:outline-none">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        Add Property
-                      </Link>
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      List a new rental property
+                  <div className="ml-4 flex-1">
+                    <p className="text-sm font-medium text-gray-500">Total Properties</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isFetching ? '...' : stats.total}
                     </p>
                   </div>
                 </div>
-
-                <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-blue-50 text-blue-600 ring-4 ring-white">
-                      <Home className="h-6 w-6" />
-                    </span>
-                  </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium">
-                      <Link href="/my-properties" className="focus:outline-none">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        My Properties
-                      </Link>
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Manage existing properties
-                    </p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-blue-50 text-blue-600 ring-4 ring-white">
-                      <Search className="h-6 w-6" />
-                    </span>
-                  </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium">
-                      <Link href="/properties" className="focus:outline-none">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        Search Homes
-                      </Link>
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Find the perfect home for you
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-purple-500 rounded-lg shadow hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-purple-50 text-purple-600 ring-4 ring-white">
-                      <User className="h-6 w-6" />
-                    </span>
-                  </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium">
-                      <Link href="/landlords" className="focus:outline-none">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        Find Landlords
-                      </Link>
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Discover verified landlords
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 rounded-lg shadow hover:shadow-md transition-shadow">
-              <div>
-                <span className="rounded-lg inline-flex p-3 bg-indigo-50 text-indigo-600 ring-4 ring-white">
-                  <MessageCircle className="h-6 w-6" />
-                </span>
               </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium">
-                  <Link href="/messages" className="focus:outline-none">
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    Messages
-                  </Link>
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  Manage conversations
-                </p>
-              </div>
-            </div>
 
-            <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-gray-500 rounded-lg shadow hover:shadow-md transition-shadow">
-              <div>
-                <span className="rounded-lg inline-flex p-3 bg-gray-50 text-gray-600 ring-4 ring-white">
-                  <Settings className="h-6 w-6" />
-                </span>
+              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+                <div className="flex items-center">
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="text-sm font-medium text-gray-500">Active (Available)</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isFetching ? '...' : stats.active}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium">
-                  <Link href="/profile" className="focus:outline-none">
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    Profile
-                  </Link>
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  Update your information
-                </p>
+
+              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+                <div className="flex items-center">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <Home className="h-6 w-6 text-gray-600" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="text-sm font-medium text-gray-500">Rented Out</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isFetching ? '...' : stats.rented}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Stats Overview */}
-        <div className="px-4 py-6 sm:px-0">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Overview
-          </h3>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <MessageCircle className="h-6 w-6 text-gray-400" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quick Actions (Takes 1 column on large screens) */}
+          <div className="lg:col-span-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="grid grid-cols-1 divide-y divide-gray-100">
+                
+                {isLandlord ? (
+                  <>
+                    <Link href="/add-property" className="p-4 flex items-center hover:bg-gray-50 transition-colors group">
+                      <div className="bg-blue-50 p-3 rounded-lg group-hover:bg-blue-100 transition-colors">
+                        <Plus className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-bold text-gray-900">List New Property</p>
+                        <p className="text-xs text-gray-500">Add a new home for rent</p>
+                      </div>
+                    </Link>
+                    <Link href="/my-properties" className="p-4 flex items-center hover:bg-gray-50 transition-colors group">
+                      <div className="bg-green-50 p-3 rounded-lg group-hover:bg-green-100 transition-colors">
+                        <Building className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-bold text-gray-900">Manage Properties</p>
+                        <p className="text-xs text-gray-500">Edit or update listings</p>
+                      </div>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/properties" className="p-4 flex items-center hover:bg-gray-50 transition-colors group">
+                      <div className="bg-blue-50 p-3 rounded-lg group-hover:bg-blue-100 transition-colors">
+                        <Search className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-bold text-gray-900">Search Homes</p>
+                        <p className="text-xs text-gray-500">Find your dream rental</p>
+                      </div>
+                    </Link>
+                  </>
+                )}
+
+                <Link href="/profile" className="p-4 flex items-center hover:bg-gray-50 transition-colors group">
+                  <div className="bg-gray-50 p-3 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <Settings className="h-5 w-5 text-gray-600" />
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Unread messages
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">0</dd>
-                    </dl>
+                  <div className="ml-4">
+                    <p className="text-sm font-bold text-gray-900">Profile Settings</p>
+                    <p className="text-xs text-gray-500">Update personal info</p>
                   </div>
-                </div>
+                </Link>
               </div>
             </div>
+          </div>
 
-            {isLandlord && (
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Home className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Active properties
-                        </dt>
-                        {/* Ithe aapan dynamic count dakhvla ahe */}
-                        <dd className="text-lg font-medium text-gray-900">{activePropertiesCount}</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* 🌟 REAL RECENT PROPERTIES LIST (Takes 2 columns) */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">
+                {isLandlord ? 'Recent Properties' : 'Recent Activity'}
+              </h3>
+              {isLandlord && properties.length > 0 && (
+                <Link href="/my-properties" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+                  View All &rarr;
+                </Link>
+              )}
+            </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <Star className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Average rating
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">-</dd>
-                    </dl>
-                  </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              {isFetching ? (
+                <div className="p-8 text-center text-gray-500">Loading your properties...</div>
+              ) : isLandlord && properties.length > 0 ? (
+                <ul className="divide-y divide-gray-100">
+                  {/* Fakt pahaile 3 property dakhvuya dashboard var */}
+                  {properties.slice(0, 3).map((property) => (
+                    <li key={property.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                          {property.images && property.images.length > 0 ? (
+                            <img src={property.images[0]} alt={property.title} className="h-full w-full object-cover" />
+                          ) : (
+                            <Home className="h-8 w-8 text-gray-400 m-auto mt-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">{property.title}</p>
+                          <div className="flex items-center mt-1">
+                            <MapPin className="h-3 w-3 text-gray-400 mr-1" />
+                            <p className="text-xs text-gray-500 truncate">{property.city}, {property.region}</p>
+                          </div>
+                          <div className="mt-1 flex items-center space-x-2">
+                            <span className={`px-2 inline-flex text-[10px] leading-4 font-semibold rounded-full ${
+                              property.available ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {property.available ? 'Available' : 'Rented'}
+                            </span>
+                            <span className="text-xs font-bold text-blue-600">{formatPrice(property.monthlyRent)}/mo</span>
+                          </div>
+                        </div>
+                        <div>
+                           <Link href={`/properties/${property.id}`} className="text-gray-400 hover:text-blue-600">
+                              <ExternalLink className="h-5 w-5" />
+                           </Link>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : isLandlord ? (
+                <div className="p-10 text-center">
+                  <Building className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium mb-4">You haven't listed any properties yet.</p>
+                  <Link href="/add-property" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" /> List Your First Property
+                  </Link>
                 </div>
-              </div>
+              ) : (
+                <div className="p-10 text-center">
+                  <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Start searching to see activity here.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
