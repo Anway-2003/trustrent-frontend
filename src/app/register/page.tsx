@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Home, Eye, EyeOff, User, Mail, Lock, Phone, MapPin, FileText } from 'lucide-react';
+import { Home, Eye, EyeOff, User, Mail, Lock, Phone, MapPin, FileText, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 function RegisterForm() {
@@ -38,12 +38,15 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // NAVIN: Error chya sobat Success message sathi state
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState(''); 
 
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      router.push('/dashboard');
+      router.push('/properties');
     }
   }, [authLoading, isLoggedIn, router]);
 
@@ -78,6 +81,7 @@ function RegisterForm() {
 
     setIsLoading(true);
     setError('');
+    setSuccessMsg('');
 
     try {
       // 1. Direct Spring Boot chya UserController la call
@@ -102,14 +106,14 @@ function RegisterForm() {
 
       // 2. Jar HTTP status 200 OK kiwa 201 Created aala tar success
       if (response.ok) {
-        const user = await response.json();
-
-        // Store token and user in localStorage (Dummy token for now)
-        localStorage.setItem('token', 'temp-register-token');
-        localStorage.setItem('user', JSON.stringify(user));
+        // 👇 FIX: LocalStorage madhe save na karta direct Login page var redirect!
+        setSuccessMsg('Account created successfully! Redirecting to login...');
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // 2 second thambun nantar login page var pathavne (mhanje tyala success message disel)
+        setTimeout(() => {
+            router.push('/login');
+        }, 2000);
+
       } else {
         setError('Registration failed. Email might already be in use.');
       }
@@ -154,10 +158,19 @@ function RegisterForm() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Error Message */}
+            
+            {/* 🔴 Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}
+              </div>
+            )}
+
+            {/* 🟢 Success Message (Navin Add Kela) */}
+            {successMsg && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm flex items-center">
+                <CheckCircle2 className="h-5 w-5 mr-2" />
+                {successMsg}
               </div>
             )}
 
@@ -429,7 +442,7 @@ function RegisterForm() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || successMsg !== ''} // Success message aalyavar button disable thevne
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (

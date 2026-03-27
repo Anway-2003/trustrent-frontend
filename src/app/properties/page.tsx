@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, MapPin, Home, SlidersHorizontal, IndianRupee, Star, Heart } from 'lucide-react';
+import { Search, MapPin, Home, SlidersHorizontal, Heart, BadgeCheck } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -15,6 +15,7 @@ interface Property {
   monthlyRent: number;
   available: boolean;
   images: string[];
+  ownerVerified?: boolean; // 👇 NAVIN ADD KELA
 }
 
 export default function PropertiesPage() {
@@ -32,11 +33,9 @@ export default function PropertiesPage() {
     fetchProperties();
   }, []);
 
-  // Filter Logic (Jevha pan filters badlatil, tevha hi effect run hoil)
   useEffect(() => {
     let result = properties;
 
-    // 1. Search Filter (City, Region kiva Title varun)
     if (searchTerm) {
       const lowercasedSearch = searchTerm.toLowerCase();
       result = result.filter(p => 
@@ -46,12 +45,10 @@ export default function PropertiesPage() {
       );
     }
 
-    // 2. Type Filter (FIXED: Case Insensitive kela)
     if (propertyType !== 'ALL') {
       result = result.filter(p => p.type?.toUpperCase() === propertyType.toUpperCase());
     }
 
-    // 3. Price Filter (FIXED: Number validation)
     result = result.filter(p => Number(p.monthlyRent) <= Number(maxRent));
 
     setFilteredProperties(result);
@@ -60,7 +57,6 @@ export default function PropertiesPage() {
   const fetchProperties = async () => {
     setIsLoading(true);
     try {
-      // 👇 FIX: { cache: 'no-store' } takla, mhanje Next.js pratyek veli navin data aandel (Juna cache nahi dakhvnar)
       const response = await fetch('http://localhost:8080/api/properties', {
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache' }
@@ -68,12 +64,9 @@ export default function PropertiesPage() {
       
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched Properties from DB:", data); // Browser Console madhe check karnyasti
-        
         setProperties(data);
         setFilteredProperties(data); 
         
-        // Jar database madhe jast price asel tar slider chi max limit set karne
         if (data.length > 0) {
           const highestRent = Math.max(...data.map((p:Property) => Number(p.monthlyRent) || 0));
           if (highestRent > 200000) setMaxRent(highestRent);
@@ -101,7 +94,7 @@ export default function PropertiesPage() {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Find Your Perfect Home</h1>
-          <p className="text-gray-500">Discover top-rated verified properties in your favorite cities.</p>
+          <p className="text-gray-500">Discover top-rated properties from our verified landlords.</p>
         </div>
 
         {/* Search & Filter Section */}
@@ -112,7 +105,6 @@ export default function PropertiesPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Search Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Search Location/Name</label>
               <div className="relative">
@@ -127,7 +119,6 @@ export default function PropertiesPage() {
               </div>
             </div>
 
-            {/* Property Type Dropdown */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
               <select 
@@ -143,7 +134,6 @@ export default function PropertiesPage() {
               </select>
             </div>
 
-            {/* Price Slider */}
             <div>
               <label className="flex justify-between text-sm font-medium text-gray-700 mb-2">
                 <span>Max Budget (Rent)</span>
@@ -162,7 +152,6 @@ export default function PropertiesPage() {
           </div>
         </div>
 
-        {/* Results Info */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">
             {filteredProperties.length} {filteredProperties.length === 1 ? 'Property' : 'Properties'} Found
@@ -178,7 +167,7 @@ export default function PropertiesPage() {
           <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
             <Home className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">No properties match your search</h3>
-            <p className="text-gray-500 mb-6">Try adjusting your filters or search terms to find more results.</p>
+            <p className="text-gray-500 mb-6">Try adjusting your filters or wait for landlords to be verified.</p>
             <button 
               onClick={() => { setSearchTerm(''); setPropertyType('ALL'); setMaxRent(200000); }}
               className="px-6 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg hover:bg-blue-200 transition-colors"
@@ -192,7 +181,6 @@ export default function PropertiesPage() {
               <Link key={property.id} href={`/properties/${property.id}`} className="group block">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
                   
-                  {/* Image Section */}
                   <div className="relative h-60 bg-gray-200 overflow-hidden">
                     {property.images && property.images.length > 0 ? (
                       <img 
@@ -210,15 +198,20 @@ export default function PropertiesPage() {
                     </div>
                   </div>
 
-                  {/* Details Section */}
                   <div className="p-5">
                     <div className="flex items-center text-sm text-gray-500 mb-2">
                       <MapPin className="h-4 w-4 mr-1 text-blue-500" />
                       <span className="truncate">{property.city}, {property.region}</span>
                     </div>
                     
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 truncate group-hover:text-blue-600 transition-colors">
+                    {/* 👇 NAVIN ADD KELA: Title chya samor Blue Tick! 👇 */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 truncate group-hover:text-blue-600 transition-colors flex items-center">
                       {property.title}
+                      {property.ownerVerified && (
+                        <span title="Verified Owner">
+                          <BadgeCheck className="h-5 w-5 text-blue-500 ml-2 flex-shrink-0" />
+                        </span>
+                      )}
                     </h3>
 
                     <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-50">
