@@ -6,7 +6,7 @@ import { Home, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { isLoggedIn, isLoading: authLoading, user } = useAuth(); // user ghetla ithe
   
   const [formData, setFormData] = useState({
     email: '',
@@ -17,12 +17,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already logged in
+  // Redirect if already logged in (Role pramane)
   useEffect(() => {
-    if (!authLoading && isLoggedIn) {
-      window.location.href = '/properties'; // Dashboard chya jagi properties kela
+    if (!authLoading && isLoggedIn && user) {
+      if (user.role === 'ADMIN') {
+        window.location.href = '/admin';
+      } else if (user.role === 'LANDLORD') {
+        window.location.href = '/dashboard';
+      } else {
+        window.location.href = '/properties';
+      }
     }
-  }, [authLoading, isLoggedIn]);
+  }, [authLoading, isLoggedIn, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,17 +63,19 @@ export default function LoginPage() {
 
       // 2. Jar HTTP status 200 OK aala tar login success
       if (response.ok) {
-        const user = await response.json();
+        const loggedInUser = await response.json();
         
         // 3. User chi mahiti ani token local storage madhe save karne
-        localStorage.setItem('token', user.token || 'temp-login-token');
-        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', loggedInUser.token || 'temp-login-token');
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
         
-        // 4. 👑 VIP REDIRECT LOGIC 👑 (He navin taklay)
-        if (user.role === 'ADMIN') {
+        // 4. 👑 VIP REDIRECT LOGIC 👑 (Tenant, Landlord ani Admin sathi veg-vegla)
+        if (loggedInUser.role === 'ADMIN') {
           window.location.href = '/admin'; // Admin direct cabin madhe
+        } else if (loggedInUser.role === 'LANDLORD') {
+          window.location.href = '/dashboard'; // 👈 FIX: Owner direct Dashboard var!
         } else {
-          window.location.href = '/properties'; // Baki sagle properties var
+          window.location.href = '/properties'; // Baki sagle (Tenant) properties var
         }
       } else {
         setError('Invalid credentials (Chukicha Email kiwa Password)');
