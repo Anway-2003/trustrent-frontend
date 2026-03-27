@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   Home, Building, Heart, User, LogOut, 
   Menu, X, ShieldCheck, PlusCircle, 
-  Search
+  Search, LayoutDashboard 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -28,6 +28,14 @@ export default function Navigation() {
       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
   `;
 
+  // 👇 FIX: Logo var click kelyavar Role pramane redirect karne
+  const getLogoLink = () => {
+    if (!isLoggedIn) return '/';
+    if (user?.role === 'ADMIN') return '/admin';
+    if (user?.role === 'LANDLORD') return '/dashboard';
+    return '/properties'; // Tenant
+  };
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,7 +43,8 @@ export default function Navigation() {
           
           {/* Left Side: Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 group">
+            {/* Logo Link updated to use getLogoLink() */}
+            <Link href={getLogoLink()} className="flex items-center gap-2 group">
               <div className="bg-blue-600 text-white p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
                 <ShieldCheck className="h-6 w-6" />
               </div>
@@ -66,11 +75,16 @@ export default function Navigation() {
                 {/* LANDLORD SATHI LINKS */}
                 {user?.role === 'LANDLORD' && (
                   <>
+                    {/* 👇 NAVIN ADD KELA: Dashboard Button */}
+                    <Link href="/dashboard" className={navLinkClass('/dashboard')}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                    </Link>
+                    
                     <Link href="/properties" className={navLinkClass('/properties')}>
-                      <Building className="h-4 w-4 mr-2" /> Browse
+                      <Search className="h-4 w-4 mr-2" /> Browse
                     </Link>
                     <Link href="/my-properties" className={navLinkClass('/my-properties')}>
-                      <Home className="h-4 w-4 mr-2" /> My Properties
+                      <Building className="h-4 w-4 mr-2" /> My Properties
                     </Link>
                     <Link href="/add-property" className="flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors">
                       <PlusCircle className="h-4 w-4 mr-2" /> List Property
@@ -136,6 +150,8 @@ export default function Navigation() {
               )}
               {user?.role === 'LANDLORD' && (
                 <>
+                  {/* 👇 NAVIN ADD KELA: Mobile Dashboard Button */}
+                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                   <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
                   <Link href="/my-properties" className={navLinkClass('/my-properties')} onClick={() => setIsMobileMenuOpen(false)}>My Properties</Link>
                   <Link href="/add-property" className={navLinkClass('/add-property')} onClick={() => setIsMobileMenuOpen(false)}>Add Property</Link>
