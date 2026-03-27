@@ -138,7 +138,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="admin@trustrent.com"
+                  placeholder="name@example.com"
                 />
               </div>
             </div>
@@ -216,45 +216,6 @@ export default function LoginPage() {
                   'Sign in'
                 )}
               </button>
-            </div>
-
-            {/* Demo Accounts */}
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Demo Accounts</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ email: 'admin@trustrent.com', password: 'admin123' })}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-purple-50 text-sm font-medium text-purple-700 hover:bg-purple-100 mb-2"
-                >
-                  <Home className="h-5 w-5 text-purple-600 mr-2" />
-                  Admin Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ email: 'landlord@example.com', password: 'password123' })}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <Home className="h-5 w-5 text-green-600 mr-2" />
-                  Landlord Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ email: 'tenant@example.com', password: 'password123' })}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <Mail className="h-5 w-5 text-blue-600 mr-2" />
-                  Tenant Demo
-                </button>
-              </div>
             </div>
           </form>
         </div>
