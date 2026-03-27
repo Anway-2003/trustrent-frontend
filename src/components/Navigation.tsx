@@ -28,7 +28,6 @@ export default function Navigation() {
       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
   `;
 
-  // 👇 FIX: Logo var click kelyavar Role pramane redirect karne
   const getLogoLink = () => {
     if (!isLoggedIn) return '/';
     if (user?.role === 'ADMIN') return '/admin';
@@ -43,7 +42,6 @@ export default function Navigation() {
           
           {/* Left Side: Logo */}
           <div className="flex items-center">
-            {/* Logo Link updated to use getLogoLink() */}
             <Link href={getLogoLink()} className="flex items-center gap-2 group">
               <div className="bg-blue-600 text-white p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
                 <ShieldCheck className="h-6 w-6" />
@@ -57,7 +55,6 @@ export default function Navigation() {
           {/* Center/Right Side: Desktop Menu */}
           <div className="hidden md:flex md:items-center md:space-x-2">
             
-            {/* 🔴 FAKT LOGGED IN USERS SATHI LINKS 🔴 */}
             {isLoggedIn ? (
               <>
                 {/* TENANT SATHI LINKS */}
@@ -75,7 +72,6 @@ export default function Navigation() {
                 {/* LANDLORD SATHI LINKS */}
                 {user?.role === 'LANDLORD' && (
                   <>
-                    {/* 👇 NAVIN ADD KELA: Dashboard Button */}
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
                       <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
                     </Link>
@@ -86,7 +82,9 @@ export default function Navigation() {
                     <Link href="/my-properties" className={navLinkClass('/my-properties')}>
                       <Building className="h-4 w-4 mr-2" /> My Properties
                     </Link>
-                    <Link href="/add-property" className="flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors">
+                    
+                    {/* 👇 FIX: Baki tab sarka same design kela! 👇 */}
+                    <Link href="/add-property" className={navLinkClass('/add-property')}>
                       <PlusCircle className="h-4 w-4 mr-2" /> List Property
                     </Link>
                   </>
@@ -113,7 +111,7 @@ export default function Navigation() {
                 </button>
               </>
             ) : (
-              /* 🟢 BINA LOGIN CHE USERS (GUESTS) SATHI 🟢 */
+              /* GUESTS SATHI */
               <div className="flex items-center space-x-4">
                 <Link href="/login" className="text-gray-600 hover:text-gray-900 font-semibold px-4 py-2">
                   Login
@@ -150,11 +148,13 @@ export default function Navigation() {
               )}
               {user?.role === 'LANDLORD' && (
                 <>
-                  {/* 👇 NAVIN ADD KELA: Mobile Dashboard Button */}
                   <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                   <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
                   <Link href="/my-properties" className={navLinkClass('/my-properties')} onClick={() => setIsMobileMenuOpen(false)}>My Properties</Link>
-                  <Link href="/add-property" className={navLinkClass('/add-property')} onClick={() => setIsMobileMenuOpen(false)}>Add Property</Link>
+                  {/* Mobile sathi pan same class dila */}
+                  <Link href="/add-property" className={navLinkClass('/add-property')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><PlusCircle className="h-4 w-4 mr-2" /> List Property</div>
+                  </Link>
                 </>
               )}
               {user?.role === 'ADMIN' && (
