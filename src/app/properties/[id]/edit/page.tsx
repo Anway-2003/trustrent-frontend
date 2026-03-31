@@ -35,7 +35,7 @@ interface PropertyFormData {
   rentalPeriod: string;
   minRentalMonths: string;
   maxRentalMonths: string;
-  available: boolean; // Edit page var available mark karnyasti
+  available: boolean; 
 }
 
 interface EditPageProps {
@@ -163,18 +163,27 @@ export default function EditPropertyPage({ params }: EditPageProps) {
     setIsSubmitting(true);
     setError('');
 
+    // 👈 🟢 VIP FIX: Convert Strings to Numbers before sending to Spring Boot!
+    const payload = {
+      ...formData,
+      rooms: parseInt(formData.rooms) || 0,
+      bathrooms: parseInt(formData.bathrooms) || 0,
+      area: formData.area ? parseInt(formData.area) : 0,
+      monthlyRent: parseInt(formData.monthlyRent) || 0,
+      deposit: formData.deposit ? parseInt(formData.deposit) : 0,
+      images
+    };
+
     try {
       const response = await fetch(`http://localhost:8080/api/properties/${id}`, {
-        method: 'PUT', // PUT is used for updates
+        method: 'PUT', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          images
-        }),
+        body: JSON.stringify(payload), // Send the corrected payload
       });
 
       if (response.ok) {
-        router.push('/my-properties');
+        // Page force-reload houn fresh data gheil!
+        window.location.href = '/my-properties';
       } else {
         setError('Error updating property. Please check the backend.');
       }
