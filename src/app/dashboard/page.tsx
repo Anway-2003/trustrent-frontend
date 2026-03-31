@@ -61,7 +61,7 @@ export default function DashboardPage() {
           return res.json();
         })
         .then((data) => {
-          setSavedProperties(data.reverse()); // Navin save kelele aadhi dakhvnyasti
+          setSavedProperties(data.reverse()); 
         })
         .catch((err) => console.error("Saved properties fetch error:", err))
         .finally(() => setIsFetching(false));
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <div className="px-6 py-8">
             <div className="flex items-center">
               
-              {/* 👈 FIX: Profile Pic dakhvnyacha logic add kela */}
+             
               <div className="flex-shrink-0">
                 <div className={`h-20 w-20 rounded-full flex items-center justify-center overflow-hidden shadow-sm border-2 border-white ${
                   !user.avatar ? (isLandlord ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600') : 'bg-gray-100'

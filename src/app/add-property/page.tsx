@@ -1,177 +1,284 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building, MapPin, IndianRupee, Home, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { 
+  Home, Save, X, Upload, ArrowLeft, PlusCircle
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
+
+interface PropertyFormData {
+  title: string;
+  description: string;
+  type: string;
+  address: string;
+  city: string;
+  region: string;
+  country: string;
+  rooms: string;
+  bathrooms: string;
+  area: string;
+  floor: string;
+  hasElevator: boolean;
+  hasParking: boolean;
+  hasBalcony: boolean;
+  hasGarden: boolean;
+  furnished: boolean;
+  petsAllowed: boolean;
+  smokingAllowed: boolean;
+  monthlyRent: string;
+  deposit: string;
+  utilities: string;
+  availableFrom: string;
+  rentalPeriod: string;
+  minRentalMonths: string;
+  maxRentalMonths: string;
+  available: boolean; 
+}
 
 export default function AddPropertyPage() {
   const router = useRouter();
   const { user, isLoggedIn, isLoading: authLoading } = useAuth();
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    type: 'APARTMENT',
-    city: '',
-    region: '',
-    rooms: 1,
-    monthlyRent: '',
-    images: [] as string[],
-    available: true
+  const [formData, setFormData] = useState<PropertyFormData>({
+    title: '', description: '', type: 'APARTMENT', address: '', city: '', region: '',
+    country: 'India', rooms: '', bathrooms: '', area: '', floor: '',
+    hasElevator: false, hasParking: false, hasBalcony: false, hasGarden: false,
+    furnished: false, petsAllowed: false, smokingAllowed: false,
+    monthlyRent: '', deposit: '', utilities: '', availableFrom: '',
+    rentalPeriod: 'LONG_TERM', minRentalMonths: '', maxRentalMonths: '', available: true
   });
 
+  const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  // Auth Check: Landlord asel tarch allow kar
+  // Authentication Check
   useEffect(() => {
-    if (!authLoading) {
-      if (!isLoggedIn) router.push('/login');
-      else if (user?.role !== 'LANDLORD') {
-        alert("Fakt Landlords property add karu shaktat!");
-        router.push('/properties');
-      }
+    if (!authLoading && (!isLoggedIn || user?.role !== 'LANDLORD')) {
+      router.push('/login');
     }
   }, [authLoading, isLoggedIn, user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    if (error) setError('');
   };
 
-  // Image Upload (Base64 conversion)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, reader.result as string]
-          }));
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImages((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
+
+    // Convert Strings to Numbers and attach Owner ID!
+    const payload = {
+      ...formData,
+      rooms: parseInt(formData.rooms) || 0,
+      bathrooms: parseInt(formData.bathrooms) || 0,
+      area: formData.area ? parseInt(formData.area) : 0,
+      monthlyRent: parseInt(formData.monthlyRent) || 0,
+      deposit: formData.deposit ? parseInt(formData.deposit) : 0,
+      images,
+      ownerId: user?.id // 👈 VIP FIX: Malakachi ID pathvane
+    };
 
     try {
-      const response = await fetch('http://localhost:8080/api/properties', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8080/api/properties`, {
+        method: 'POST', // 👈 POST mhanje navin banavne
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          monthlyRent: Number(formData.monthlyRent),
-          ownerId: user?.id // Malakacha ID jo login ahe
-        })
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        alert("Property successfully added! 🎉");
-        router.push('/properties');
+        window.location.href = '/my-properties'; // Force reload to get fresh data
       } else {
-        alert("Failed to add property. Check backend logs.");
+        setError('Error adding property. Please check the backend.');
       }
-    } catch (error) {
-      console.error("Error adding property:", error);
+    } catch (err) {
+      setError('Connection error. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <main className="max-w-3xl mx-auto py-10 px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <div className="flex items-center gap-3 mb-8 border-b pb-4">
-            <PlusCircle className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">List New Property</h1>
+
+      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center mb-8">
+          <Link href="/my-properties" className="mr-4 text-gray-500 hover:text-blue-600">
+            <ArrowLeft className="h-6 w-6" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Add New Property</h1>
+            <p className="text-gray-600 mt-1">Fill in the details to list your property</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">{error}</div>}
+
+          {/* Status (Available/Rented) */}
+          <div className="bg-white shadow rounded-lg p-6 border-l-4 border-blue-500">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Availability Status</h2>
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="available"
+                checked={formData.available}
+                onChange={handleChange}
+                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3 cursor-pointer"
+              />
+              <span className={`font-medium ${formData.available ? 'text-green-600' : 'text-gray-600'}`}>
+                {formData.available ? 'List as Available for Rent' : 'Keep Hidden / Unavailable'}
+              </span>
+            </label>
+            <p className="text-sm text-gray-500 mt-2">Check this to make your property visible in public search immediately.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Property Title</label>
-              <input type="text" name="title" required placeholder="e.g. Luxury 2BHK Apartment" value={formData.title} onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-            </div>
-
-            {/* Type & Rent */}
+          {/* Basic Information */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-6">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Listing Title *</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="e.g. Beautiful 2BHK in City Center" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} placeholder="Describe the property and its surrounding area..." className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required />
+              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <select name="type" value={formData.type} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                  <option value="APARTMENT">Apartment</option>
-                  <option value="HOUSE">House</option>
-                  <option value="STUDIO">Studio</option>
-                  <option value="VILLA">Villa</option>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Property Type *</label>
+                <select name="type" value={formData.type} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                  <option value="APARTMENT">Apartment</option><option value="HOUSE">House</option>
+                  <option value="STUDIO">Studio</option><option value="ROOM">Room</option>
+                  <option value="VILLA">Villa</option><option value="LOFT">Loft</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent (₹)</label>
-                <input type="number" name="monthlyRent" required placeholder="15000" value={formData.monthlyRent} onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
             </div>
+          </div>
 
-            {/* Location */}
+          {/* Location */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-6">Location</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input type="text" name="city" required placeholder="Mumbai" value={formData.city} onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Street Name, Area" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Region/Area</label>
-                <input type="text" name="region" required placeholder="Andheri West" value={formData.region} onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                <input type="text" name="city" value={formData.city} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Region / State *</label>
+                <input type="text" name="region" value={formData.region} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required />
               </div>
             </div>
+          </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea name="description" rows={4} required placeholder="Tell tenants about your property..." value={formData.description} onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+          {/* Property Details & Features */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-6">Property Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Rooms *</label>
+                <input type="number" name="rooms" value={formData.rooms} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} min="1" className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bathrooms *</label>
+                <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} min="1" className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Area (sqm)</label>
+                <input type="number" name="area" value={formData.area} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
             </div>
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+               <label className="flex items-center"><input type="checkbox" name="hasParking" checked={formData.hasParking} onChange={handleChange} className="rounded text-blue-600 mr-2" /> Parking</label>
+               <label className="flex items-center"><input type="checkbox" name="furnished" checked={formData.furnished} onChange={handleChange} className="rounded text-blue-600 mr-2" /> Furnished</label>
+               <label className="flex items-center"><input type="checkbox" name="petsAllowed" checked={formData.petsAllowed} onChange={handleChange} className="rounded text-blue-600 mr-2" /> Pets Allowed</label>
+               <label className="flex items-center"><input type="checkbox" name="hasGarden" checked={formData.hasGarden} onChange={handleChange} className="rounded text-blue-600 mr-2" /> Garden</label>
+            </div>
+          </div>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Property Photos</label>
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">Click to upload photos</p>
+          {/* Pricing */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-6">Pricing</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (₹) *</label>
+                <input type="number" name="monthlyRent" value={formData.monthlyRent} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Deposit (₹)</label>
+                <input type="number" name="deposit" value={formData.deposit} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+            </div>
+          </div>
+
+          {/* Images */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-6">Images</h2>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <input type="file" accept="image/*" multiple ref={fileInputRef} className="hidden" onChange={handleImageUpload} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Select Images</button>
+            </div>
+            {images.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img src={image} alt="Property" className="w-full h-24 object-cover rounded-lg border" />
+                    <button type="button" onClick={() => setImages(prev => prev.filter((_, i) => i !== index))} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1"><X className="h-3 w-3" /></button>
                   </div>
-                  <input type="file" multiple className="hidden" onChange={handleImageUpload} accept="image/*" />
-                </label>
-              </div>
-              
-              {/* Image Previews */}
-              <div className="flex gap-4 mt-4 overflow-x-auto">
-                {formData.images.map((img, index) => (
-                  <img key={index} src={img} className="h-20 w-20 object-cover rounded-lg border" alt="Preview" />
                 ))}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Submit Button */}
-            <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50">
-              {isSubmitting ? "Posting Property..." : "Post Property Now"}
+          {/* Submit Buttons */}
+          <div className="flex justify-end space-x-4">
+            <Link href="/my-properties" className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</Link>
+            <button type="submit" disabled={isSubmitting} className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <PlusCircle className="h-5 w-5 mr-2" />
+              {isSubmitting ? 'Publishing...' : 'List Property'}
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </main>
     </div>
   );

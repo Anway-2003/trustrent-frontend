@@ -69,28 +69,30 @@ export default function MyPropertiesPage() {
     }
   };
 
+  // 👈 🟢 VIP FIX: togglePropertyAvailability (Smart Fetch & Update logic)
   const togglePropertyAvailability = async (propertyId: string, currentStatus: boolean) => {
-    const propToUpdate = properties.find(p => p.id === propertyId);
-    if (!propToUpdate) return;
-
-    // Spring boot la confuse nako karayla aapan fakt mahatvacha data pathvuya
-    const cleanUpdateData = {
-      title: propToUpdate.title,
-      city: propToUpdate.city,
-      region: propToUpdate.region,
-      rooms: propToUpdate.rooms,
-      monthlyRent: propToUpdate.monthlyRent,
-      available: !currentStatus // Status badlun pathvne
-    };
-
     try {
-      const response = await fetch(`http://localhost:8080/api/properties/${propertyId}`, {
+      // 1. Aadhi backend kadhun tya property cha PURNA (Full) data ghene
+      const getResponse = await fetch(`http://localhost:8080/api/properties/${propertyId}`);
+      if (!getResponse.ok) {
+        alert("Property cha data ghetana error aala!");
+        return;
+      }
+      
+      const fullPropertyData = await getResponse.json();
+
+      // 2. Tyatla fakt 'available' status badalne (Toggle)
+      fullPropertyData.available = !currentStatus;
+
+      // 3. Aata ha purna pure data parat backend la pathvane
+      const putResponse = await fetch(`http://localhost:8080/api/properties/${propertyId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleanUpdateData),
+        body: JSON.stringify(fullPropertyData),
       });
 
-      if (response.ok) {
+      if (putResponse.ok) {
+        // UI madhe lagech green/gray update karne
         setProperties(prev => 
           prev.map(prop => prop.id === propertyId ? { ...prop, available: !currentStatus } : prop)
         );
@@ -98,9 +100,11 @@ export default function MyPropertiesPage() {
         alert("Backend ne request reject keli! (Error 400/500)");
       }
     } catch (err) {
+      console.error(err);
       alert("Network Error! Spring Boot chalu ahe na check kar.");
     }
   };
+
   const deleteProperty = async (propertyId: string) => {
     if (!confirm('Are you sure you want to delete this property?')) {
       return;

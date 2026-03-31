@@ -284,9 +284,10 @@ export default function EditPropertyPage({ params }: EditPageProps) {
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-6">Property Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">Rooms *</label><input type="number" name="rooms" value={formData.rooms} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">Bathrooms *</label><input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">Area (sqm)</label><input type="number" name="area" value={formData.area} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
+              {/* 👈 🟢 VIP FIX: onWheel added to all numbers! */}
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">Rooms *</label><input type="number" name="rooms" value={formData.rooms} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">Bathrooms *</label><input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">Area (sqm)</label><input type="number" name="area" value={formData.area} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
             </div>
             <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                <label className="flex items-center"><input type="checkbox" name="hasParking" checked={formData.hasParking} onChange={handleChange} className="rounded text-blue-600 mr-2" /> Parking</label>
@@ -300,8 +301,9 @@ export default function EditPropertyPage({ params }: EditPageProps) {
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-6">Pricing</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (₹) *</label><input type="number" name="monthlyRent" value={formData.monthlyRent} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">Deposit (₹)</label><input type="number" name="deposit" value={formData.deposit} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
+              {/* 👈 🟢 VIP FIX: onWheel added to Rent & Deposit! */}
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (₹) *</label><input type="number" name="monthlyRent" value={formData.monthlyRent} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" required /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">Deposit (₹)</label><input type="number" name="deposit" value={formData.deposit} onChange={handleChange} onWheel={(e) => (e.target as HTMLInputElement).blur()} className="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
             </div>
           </div>
 
