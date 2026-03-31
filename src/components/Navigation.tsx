@@ -31,8 +31,8 @@ export default function Navigation() {
   const getLogoLink = () => {
     if (!isLoggedIn) return '/';
     if (user?.role === 'ADMIN') return '/admin';
-    if (user?.role === 'LANDLORD') return '/dashboard';
-    return '/properties'; // Tenant
+    // 👈 FIX: Aata Landlord aso kiva Tenant, Logo var click kelyavar Dashboard open hoil
+    return '/dashboard'; 
   };
 
   return (
@@ -60,6 +60,10 @@ export default function Navigation() {
                 {/* TENANT SATHI LINKS */}
                 {user?.role === 'TENANT' && (
                   <>
+                    {/* 👈 FIX: Tenant la Dashboard Tab add kela */}
+                    <Link href="/dashboard" className={navLinkClass('/dashboard')}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                    </Link>
                     <Link href="/properties" className={navLinkClass('/properties')}>
                       <Search className="h-4 w-4 mr-2" /> Browse
                     </Link>
@@ -83,7 +87,6 @@ export default function Navigation() {
                       <Building className="h-4 w-4 mr-2" /> My Properties
                     </Link>
                     
-                    {/* 👇 FIX: Baki tab sarka same design kela! 👇 */}
                     <Link href="/add-property" className={navLinkClass('/add-property')}>
                       <PlusCircle className="h-4 w-4 mr-2" /> List Property
                     </Link>
@@ -142,6 +145,8 @@ export default function Navigation() {
             <>
               {user?.role === 'TENANT' && (
                 <>
+                  {/* 👈 FIX: Mobile Menu madhe pan Tenant la Dashboard Tab add kela */}
+                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                   <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
                   <Link href="/saved" className={navLinkClass('/saved')} onClick={() => setIsMobileMenuOpen(false)}>Saved Homes</Link>
                 </>
@@ -151,7 +156,6 @@ export default function Navigation() {
                   <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                   <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
                   <Link href="/my-properties" className={navLinkClass('/my-properties')} onClick={() => setIsMobileMenuOpen(false)}>My Properties</Link>
-                  {/* Mobile sathi pan same class dila */}
                   <Link href="/add-property" className={navLinkClass('/add-property')} onClick={() => setIsMobileMenuOpen(false)}>
                     <div className="flex items-center"><PlusCircle className="h-4 w-4 mr-2" /> List Property</div>
                   </Link>

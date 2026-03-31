@@ -6,7 +6,7 @@ import { Home, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-  const { isLoggedIn, isLoading: authLoading, user } = useAuth(); // user ghetla ithe
+  const { isLoggedIn, isLoading: authLoading, user } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -22,10 +22,9 @@ export default function LoginPage() {
     if (!authLoading && isLoggedIn && user) {
       if (user.role === 'ADMIN') {
         window.location.href = '/admin';
-      } else if (user.role === 'LANDLORD') {
-        window.location.href = '/dashboard';
       } else {
-        window.location.href = '/properties';
+        // 👈 FIX: Aata Landlord aso kiva Tenant, doghe pan Dashboard var jatil!
+        window.location.href = '/dashboard'; 
       }
     }
   }, [authLoading, isLoggedIn, user]);
@@ -52,7 +51,6 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // 1. Direct Spring Boot la call
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: {
@@ -61,21 +59,18 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
-      // 2. Jar HTTP status 200 OK aala tar login success
       if (response.ok) {
         const loggedInUser = await response.json();
         
-        // 3. User chi mahiti ani token local storage madhe save karne
         localStorage.setItem('token', loggedInUser.token || 'temp-login-token');
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         
-        // 4. 👑 VIP REDIRECT LOGIC 👑 (Tenant, Landlord ani Admin sathi veg-vegla)
+        // 👑 VIP REDIRECT LOGIC 👑
         if (loggedInUser.role === 'ADMIN') {
-          window.location.href = '/admin'; // Admin direct cabin madhe
-        } else if (loggedInUser.role === 'LANDLORD') {
-          window.location.href = '/dashboard'; // 👈 FIX: Owner direct Dashboard var!
+          window.location.href = '/admin'; 
         } else {
-          window.location.href = '/properties'; // Baki sagle (Tenant) properties var
+          // 👈 FIX: Tenant la pan login nantar direct Dashboard var pathva!
+          window.location.href = '/dashboard'; 
         }
       } else {
         setError('Invalid credentials (Chukicha Email kiwa Password)');
@@ -87,7 +82,6 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading spinner while checking auth
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -121,7 +115,6 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}

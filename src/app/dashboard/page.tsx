@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Home, User, Settings, Plus, Search, MessageCircle, 
-  Star, Building, CheckCircle2, MapPin, ExternalLink, Activity
+  Star, Building, CheckCircle2, MapPin, ExternalLink, Activity, Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
@@ -15,7 +15,8 @@ export default function DashboardPage() {
   const { user, isLoggedIn, isLoading } = useAuth();
   
   // Real Data States
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<any[]>([]); // Landlord sathi
+  const [savedProperties, setSavedProperties] = useState<any[]>([]); // Tenant sathi
   const [stats, setStats] = useState({ total: 0, active: 0, rented: 0 });
   const [isFetching, setIsFetching] = useState(false);
 
@@ -25,9 +26,12 @@ export default function DashboardPage() {
     }
   }, [isLoading, isLoggedIn, router]);
 
-  // 👈 FIX: Backend kadun fakt ya Owner chya properties ghenyasti
+  // Data Fetching Logic (Role Pramane Veg-vegli API call)
   useEffect(() => {
-    if (user?.role === 'LANDLORD' && user?.id) {
+    if (!user?.id) return;
+
+    if (user.role === 'LANDLORD') {
+      // 🏘️ LANDLORD: Tyachya swatahcya properties ghene
       setIsFetching(true);
       fetch(`http://localhost:8080/api/properties/owner/${user.id}`)
         .then((res) => {
@@ -35,7 +39,6 @@ export default function DashboardPage() {
           return res.json();
         })
         .then((data) => {
-          // Navin properties aadhi dakhvnyasti reverse kelay
           const sortedData = data.reverse();
           setProperties(sortedData);
           
@@ -47,6 +50,20 @@ export default function DashboardPage() {
           });
         })
         .catch((err) => console.error("Properties fetch error:", err))
+        .finally(() => setIsFetching(false));
+
+    } else if (user.role === 'TENANT') {
+      // 💖 TENANT: Tyanchya saved (favorite) properties ghene
+      setIsFetching(true);
+      fetch(`http://localhost:8080/api/users/${user.id}/favorites-details?t=${new Date().getTime()}`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Network error');
+          return res.json();
+        })
+        .then((data) => {
+          setSavedProperties(data.reverse()); // Navin save kelele aadhi dakhvnyasti
+        })
+        .catch((err) => console.error("Saved properties fetch error:", err))
         .finally(() => setIsFetching(false));
     }
   }, [user]);
@@ -78,20 +95,26 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         
         {/* Welcome Section */}
         <div className="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 mb-8">
           <div className="px-6 py-8">
             <div className="flex items-center">
+              
+              {/* 👈 FIX: Profile Pic dakhvnyacha logic add kela */}
               <div className="flex-shrink-0">
-                <div className={`h-20 w-20 rounded-full flex items-center justify-center ${
-                  isLandlord ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                <div className={`h-20 w-20 rounded-full flex items-center justify-center overflow-hidden shadow-sm border-2 border-white ${
+                  !user.avatar ? (isLandlord ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600') : 'bg-gray-100'
                 }`}>
-                  {isLandlord ? <Building className="h-10 w-10" /> : <User className="h-10 w-10" />}
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    isLandlord ? <Building className="h-10 w-10" /> : <User className="h-10 w-10" />
+                  )}
                 </div>
               </div>
+
               <div className="ml-6 flex-1">
                 <h2 className="text-2xl font-bold text-gray-900">
                   Welcome back, {user.firstName}! 👋
@@ -208,6 +231,15 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-500">Find your dream rental</p>
                       </div>
                     </Link>
+                    <Link href="/saved" className="p-4 flex items-center hover:bg-gray-50 transition-colors group">
+                      <div className="bg-red-50 p-3 rounded-lg group-hover:bg-red-100 transition-colors">
+                        <Heart className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-bold text-gray-900">Saved Properties</p>
+                        <p className="text-xs text-gray-500">View your wishlist</p>
+                      </div>
+                    </Link>
                   </>
                 )}
 
@@ -224,14 +256,20 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 🌟 REAL RECENT PROPERTIES LIST (Takes 2 columns) */}
+          {/* 🌟 REAL LIST (Takes 2 columns) */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">
-                {isLandlord ? 'Recent Properties' : 'Recent Activity'}
+                {isLandlord ? 'Recent Properties' : 'Your Saved Homes'}
               </h3>
+              
               {isLandlord && properties.length > 0 && (
                 <Link href="/my-properties" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+                  View All &rarr;
+                </Link>
+              )}
+              {isTenant && savedProperties.length > 0 && (
+                <Link href="/saved" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
                   View All &rarr;
                 </Link>
               )}
@@ -239,10 +277,13 @@ export default function DashboardPage() {
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               {isFetching ? (
-                <div className="p-8 text-center text-gray-500">Loading your properties...</div>
+                <div className="p-8 text-center text-gray-500">Loading your data...</div>
               ) : isLandlord && properties.length > 0 ? (
+                
+                // ==========================
+                // 🏠 LANDLORD PROPERTIES 
+                // ==========================
                 <ul className="divide-y divide-gray-100">
-                  {/* Fakt pahaile 3 property dakhvuya dashboard var */}
                   {properties.slice(0, 3).map((property) => (
                     <li key={property.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center space-x-4">
@@ -277,6 +318,7 @@ export default function DashboardPage() {
                     </li>
                   ))}
                 </ul>
+
               ) : isLandlord ? (
                 <div className="p-10 text-center">
                   <Building className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -285,10 +327,60 @@ export default function DashboardPage() {
                     <Plus className="h-4 w-4 mr-2" /> List Your First Property
                   </Link>
                 </div>
+                
+              ) : isTenant && savedProperties.length > 0 ? (
+                
+                // ==========================
+                // 💖 TENANT SAVED PROPERTIES 
+                // ==========================
+                <ul className="divide-y divide-gray-100">
+                  {savedProperties.slice(0, 3).map((property) => (
+                    <li key={property.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                          {property.images && property.images.length > 0 ? (
+                            <img src={property.images[0]} alt={property.title} className="h-full w-full object-cover" />
+                          ) : (
+                            <Home className="h-8 w-8 text-gray-400 m-auto mt-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">{property.title}</p>
+                          <div className="flex items-center mt-1">
+                            <MapPin className="h-3 w-3 text-gray-400 mr-1" />
+                            <p className="text-xs text-gray-500 truncate">{property.city}, {property.region}</p>
+                          </div>
+                          <div className="mt-1 flex items-center space-x-2">
+                            <span className={`px-2 inline-flex text-[10px] leading-4 font-semibold rounded-full ${
+                              property.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {property.available ? 'Available' : 'Rented'}
+                            </span>
+                            <span className="text-xs font-bold text-blue-600">{formatPrice(property.monthlyRent)}/mo</span>
+                          </div>
+                        </div>
+                        <div>
+                           <Link href={`/properties/${property.id}`} className="p-2 text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 inline-flex items-center">
+                              <span className="text-xs font-bold">View</span>
+                           </Link>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
               ) : (
+                
+                // ==========================
+                // 🤷‍♂️ TENANT NO SAVED PROPERTIES
+                // ==========================
                 <div className="p-10 text-center">
                   <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">Start searching to see activity here.</p>
+                  <p className="text-gray-500 font-medium mb-1">Your wishlist is empty.</p>
+                  <p className="text-gray-400 text-sm mb-4 italic">"Come on bro, search for some houses and save them!" 🏠❤️</p>
+                  <Link href="/properties" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700">
+                    <Search className="h-4 w-4 mr-2" /> Start Exploring
+                  </Link>
                 </div>
               )}
             </div>
