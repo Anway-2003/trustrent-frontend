@@ -83,11 +83,6 @@ export default function Navigation() {
                     </Link>
                   </>
                 )}
-                {user?.role === 'ADMIN' && (
-                  <Link href="/admin" className="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors">
-                    <ShieldCheck className="h-4 w-4 mr-2" /> Admin Panel
-                  </Link>
-                )}
                 <div className="relative ml-4">
                   <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 bg-white">
                     <Menu className="h-5 w-5 text-gray-600 ml-1" />
@@ -105,9 +100,8 @@ export default function Navigation() {
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/" className="text-gray-600 font-semibold px-4 py-2 hover:text-gray-900">Home</Link>
                 <Link href="/login" className="text-gray-600 font-semibold px-4 py-2 hover:text-gray-900">Login</Link>
-                <Link href="/register" className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700">Sign Up Free</Link>
+                <Link href="/register" className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700">Sign Up</Link>
               </div>
             )}
           </div>

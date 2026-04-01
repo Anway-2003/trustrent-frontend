@@ -4,28 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
-    "build:prod": "next build --no-lint",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:deploy": "prisma migrate deploy",
-    "db:status": "prisma migrate status",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
-    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
-    "docker:prod": "docker compose up -d",
-    "docker:prod:down": "docker compose down",
     "docker:build": "docker build -t trustrent .",
-    "docker:logs": "docker compose logs -f app",
-    "deploy": "chmod +x deploy.sh && ./deploy.sh",
     "health": "curl -f http://localhost:3000/api/health || exit 1"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
-    "@prisma/client": "^6.19.2",
     "@tailwindcss/forms": "^0.5.10",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -51,9 +37,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "prisma": "^6.19.2",
     "tailwindcss": "^4",
-    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }
