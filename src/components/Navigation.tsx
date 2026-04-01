@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   Home, Building, Heart, User, LogOut, 
   Menu, X, ShieldCheck, PlusCircle, 
-  Search, LayoutDashboard 
+  Search, LayoutDashboard, MessageSquareQuote
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from 'next-auth/react'; 
@@ -15,7 +15,9 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoggedIn, logout } = useAuth();
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // 👈 New state for Desktop Dropdown
 
   const handleLogout = async () => {
     logout(); 
@@ -53,16 +55,11 @@ export default function Navigation() {
           </div>
 
           {/* Center/Right Side: Desktop Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-2">
+          <div className="hidden md:flex md:items-center md:space-x-1">
             
             {isLoggedIn ? (
               <>
-                {/* Home Button for Logged-in Users */}
-                <Link href="/" className={navLinkClass('/')}>
-                  <Home className="h-4 w-4 mr-2" /> Home
-                </Link>
-
-                {/* TENANT SATHI LINKS */}
+                {/* TENANT LINKS */}
                 {user?.role === 'TENANT' && (
                   <>
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
@@ -77,7 +74,7 @@ export default function Navigation() {
                   </>
                 )}
 
-                {/* LANDLORD SATHI LINKS */}
+                {/* LANDLORD LINKS */}
                 {user?.role === 'LANDLORD' && (
                   <>
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
@@ -95,30 +92,55 @@ export default function Navigation() {
                   </>
                 )}
 
-                {/* ADMIN SATHI LINKS */}
+                {/* ADMIN LINKS */}
                 {user?.role === 'ADMIN' && (
                   <Link href="/admin" className="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors">
                     <ShieldCheck className="h-4 w-4 mr-2" /> Admin Panel
                   </Link>
                 )}
 
-                {/* COMMON PROFILE & LOGOUT */}
-                <div className="h-6 w-px bg-gray-200 mx-2"></div> {/* Divider */}
-                
-                <Link href="/profile" className={navLinkClass('/profile')}>
-                  <User className="h-4 w-4 mr-2" /> Profile
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="flex items-center px-4 py-2 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <LogOut className="h-4 w-4 mr-2" /> Logout
-                </button>
+                {/* 🟢 NEW: User Profile Dropdown (3 lines + User icon) */}
+                <div className="relative ml-4">
+                  <button 
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    onBlur={() => setTimeout(() => setIsProfileMenuOpen(false), 200)} // Auto-close on click outside
+                    className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 hover:shadow-md transition-all duration-200 bg-white"
+                  >
+                    <Menu className="h-5 w-5 text-gray-600 ml-1" />
+                    <div className="bg-gray-100 p-1 rounded-full">
+                      <User className="h-5 w-5 text-gray-600" />
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileMenuOpen && (
+                    <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+                      <Link 
+                        href="/profile" 
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-medium"
+                      >
+                        <User className="h-4 w-4 mr-3 text-gray-400" /> My Profile
+                      </Link>
+                      <Link 
+                        href="/feedback" 
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-medium"
+                      >
+                        <MessageSquareQuote className="h-4 w-4 mr-3 text-gray-400" /> Feedback
+                      </Link>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left flex items-center px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" /> Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
-              /* GUESTS SATHI */
+              /* GUESTS LINKS */
               <div className="flex items-center space-x-2">
-                {/* Home Button for Guests */}
                 <Link href="/" className="text-gray-600 hover:text-gray-900 font-semibold px-4 py-2 flex items-center">
                   <Home className="h-4 w-4 mr-1.5" /> Home
                 </Link>
@@ -149,11 +171,6 @@ export default function Navigation() {
         <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-2 pb-6 space-y-2 shadow-lg absolute w-full">
           {isLoggedIn ? (
             <>
-              {/* Home Link for Mobile (Logged In) */}
-              <Link href="/" className={navLinkClass('/')} onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="flex items-center"><Home className="h-4 w-4 mr-2" /> Home</div>
-              </Link>
-
               {user?.role === 'TENANT' && (
                 <>
                   <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>
@@ -188,9 +205,13 @@ export default function Navigation() {
                   <div className="flex items-center"><ShieldCheck className="h-4 w-4 mr-2" /> Admin Panel</div>
                 </Link>
               )}
+              
               <div className="border-t border-gray-100 my-2 pt-2">
                 <Link href="/profile" className={navLinkClass('/profile')} onClick={() => setIsMobileMenuOpen(false)}>
                   <div className="flex items-center"><User className="h-4 w-4 mr-2" /> My Profile</div>
+                </Link>
+                <Link href="/feedback" className={navLinkClass('/feedback')} onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center"><MessageSquareQuote className="h-4 w-4 mr-2" /> Feedback</div>
                 </Link>
                 <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50">
                   <LogOut className="h-4 w-4 mr-2" /> Logout
@@ -199,7 +220,6 @@ export default function Navigation() {
             </>
           ) : (
             <div className="flex flex-col space-y-3 pt-2">
-              {/* Home Link for Mobile (Guest) */}
               <Link href="/" className="w-full text-center border border-gray-100 text-gray-700 hover:bg-gray-50 flex items-center justify-center px-4 py-3 rounded-lg font-bold" onClick={() => setIsMobileMenuOpen(false)}>
                 <Home className="h-4 w-4 mr-2" /> Home
               </Link>
