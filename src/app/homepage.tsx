@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-// Added Twitter, Instagram, Linkedin, and Mail icons for the new footer
-import { Home, Users, Star, MessageCircle, Search, Shield, User, Twitter, Instagram, Linkedin, Mail } from 'lucide-react';
+// Added Twitter, Instagram, Linkedin, Mail, and MessageSquareQuote icons
+import { Home, Users, Star, MessageCircle, Search, Shield, User, Twitter, Instagram, Linkedin, Mail, MessageSquareQuote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 
@@ -119,6 +119,80 @@ export default function HomePage() {
                   Intuitive dashboard to manage properties, applications, 
                   and communications in one place.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 🟢 Testimonials / Feedback Section Added Here */}
+        <section className="py-16 bg-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+              What Our Users Say
+            </h2>
+            <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+              Real feedback from verified landlords and tenants who found their perfect match on TrustRent.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Feedback 1 */}
+              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative">
+                <MessageSquareQuote className="absolute top-4 right-4 h-8 w-8 text-blue-100" />
+                <div className="flex text-yellow-400 mb-4">
+                  <Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" />
+                </div>
+                <p className="text-gray-600 mb-6 italic">
+                  "TrustRent made finding a tenant so easy. The verification process is top-notch, and I rented out my flat within 3 days without any broker!"
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                    R
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-bold text-gray-900">Rahul D.</p>
+                    <p className="text-xs text-gray-500">Verified Landlord</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback 2 */}
+              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative">
+                <MessageSquareQuote className="absolute top-4 right-4 h-8 w-8 text-blue-100" />
+                <div className="flex text-yellow-400 mb-4">
+                  <Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5" />
+                </div>
+                <p className="text-gray-600 mb-6 italic">
+                  "I was tired of paying huge brokerages. Here I found direct owners, chatted with them, and finalized my PG. Absolutely love the UI!"
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">
+                    S
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-bold text-gray-900">Sneha M.</p>
+                    <p className="text-xs text-gray-500">Verified Tenant</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback 3 */}
+              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative">
+                <MessageSquareQuote className="absolute top-4 right-4 h-8 w-8 text-blue-100" />
+                <div className="flex text-yellow-400 mb-4">
+                  <Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" /><Star className="h-5 w-5 fill-current" />
+                </div>
+                <p className="text-gray-600 mb-6 italic">
+                  "The direct communication feature is the best. No middlemen, no hidden charges. Just transparent renting. Highly recommended."
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">
+                    A
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-bold text-gray-900">Amit P.</p>
+                    <p className="text-xs text-gray-500">Verified Tenant</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
