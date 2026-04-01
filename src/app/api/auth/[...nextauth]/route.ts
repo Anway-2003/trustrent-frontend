@@ -1,12 +1,15 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+// .env मधून बॅकएंड URL मिळवणे
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://trustrent-backend.onrender.com";
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      // 👇 🟢 VIP FIX: हे ऍड केल्याने गुगल नेहमी अकाउंट निवडायचा पॉपअप दाखवेल!
+      // 👇 🟢 VIP FIX: गुगल नेहमी अकाउंट निवडायचा पॉपअप दाखवेल
       authorization: {
         params: {
           prompt: "select_account",
@@ -18,8 +21,8 @@ const handler = NextAuth({
     async signIn({ user, account, profile }: any) {
       if (account?.provider === "google") {
         try {
-          // 👈 🟢 BACKEND LA CALL KARUYA
-          const response = await fetch("http://localhost:8080/api/auth/google-login", {
+          // 👈 🟢 आता बॅकएंड Render वर कॉल जाईल
+          const response = await fetch(`${BACKEND_URL}/api/auth/google-login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -32,28 +35,27 @@ const handler = NextAuth({
           if (response.ok) {
             const data = await response.json();
             
-            // 👈 🟢 VIP: Backend kadhun aalela data 'user' object madhe temp save kara
-            // Jyane to 'jwt' callback madhe access karta yeil
+            // 👈 🟢 Backend कडून आलेला डेटा 'user' ऑब्जेक्टमध्ये सेव्ह करा
+            // जेणेकरून तो पुढे 'jwt' मध्ये वापरता येईल
             user.backendData = data;
             user.isNewUser = data.isNewUser;
             
-            console.log("✅ Backend Response:", data);
+            console.log("✅ Backend Response (Google Login):", data);
             return true;
           } else {
-            console.error("❌ Backend error during Google Login");
+            console.error("❌ Backend error during Google Login:", response.status);
             return false;
           }
         } catch (error) {
-          console.error("❌ Backend connection error:", error);
+          console.error("❌ Backend connection error (Google Login):", error);
           return false;
         }
       }
       return true;
     },
 
-    // 🔄 SESSION MADHE DATA PATHVNYASTHI HYA DON METHODS GARJECHYA AHET
+    // 🔄 सेशन मॅनेजमेंट
     async jwt({ token, user }: any) {
-      // Jevha user login hoto, tevha backend cha data token madhe taka
       if (user) {
         token.backendData = user.backendData;
         token.isNewUser = user.isNewUser;
@@ -62,7 +64,6 @@ const handler = NextAuth({
     },
 
     async session({ session, token }: any) {
-      // Token madhla data session madhe taka jyane to LoginPage chya 'useSession' madhe disel
       if (session.user) {
         (session.user as any).backendData = token.backendData;
         (session.user as any).isNewUser = token.isNewUser;
@@ -70,7 +71,7 @@ const handler = NextAuth({
       return session;
     },
   },
-  // Security sathi secret takayla visru nako
+  // .env मध्ये NEXTAUTH_SECRET="Anway1234" असायला हवं
   secret: process.env.NEXTAUTH_SECRET,
 });
 
