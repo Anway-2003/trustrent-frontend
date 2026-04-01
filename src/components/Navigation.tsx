@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState} from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -13,7 +13,7 @@ import { signOut } from 'next-auth/react';
 
 export default function Navigation() {
   const pathname = usePathname();
-  const router = useRouter();
+
   const { user, isLoggedIn, logout } = useAuth();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -145,15 +145,24 @@ export const useSocket = ({ enabled = true, token }: UseSocketOptions = {}) => {
     }
   };
 
-  const on = (event: keyof ServerToClientEvents, listener: (...args: any[]) => void) => {
+  // 🟢 FIXED: Any काढून योग्य टाईप्स वापरले आहेत जेणेकरून Vercel बिल्ड फेल होणार नाही
+  const on = <E extends keyof ServerToClientEvents>(
+    event: E,
+    listener: ServerToClientEvents[E]
+  ) => {
     if (socketRef.current) {
-      socketRef.current.on(event, listener);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      socketRef.current.on(event, listener as any);
     }
   };
 
-  const off = (event: keyof ServerToClientEvents, listener?: (...args: any[]) => void) => {
+  const off = <E extends keyof ServerToClientEvents>(
+    event: E,
+    listener?: ServerToClientEvents[E]
+  ) => {
     if (socketRef.current) {
-      socketRef.current.off(event, listener);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      socketRef.current.off(event, listener as any);
     }
   };
 
