@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  Home, User, Settings, Plus, Search, MessageCircle, 
-  Star, Building, CheckCircle2, MapPin, ExternalLink, Activity, Heart
+  Home, User, Settings, Plus, Search, 
+  Building, CheckCircle2, MapPin, ExternalLink, Activity, Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
@@ -15,8 +15,8 @@ export default function DashboardPage() {
   const { user, isLoggedIn, isLoading } = useAuth();
   
   // Real Data States
-  const [properties, setProperties] = useState<any[]>([]); // Landlord sathi
-  const [savedProperties, setSavedProperties] = useState<any[]>([]); // Tenant sathi
+  const [properties, setProperties] = useState<any[]>([]); 
+  const [savedProperties, setSavedProperties] = useState<any[]>([]); 
   const [stats, setStats] = useState({ total: 0, active: 0, rented: 0 });
   const [isFetching, setIsFetching] = useState(false);
 
@@ -26,12 +26,11 @@ export default function DashboardPage() {
     }
   }, [isLoading, isLoggedIn, router]);
 
-  // Data Fetching Logic (Role Pramane Veg-vegli API call)
+  // Data Fetching Logic (Role Pramane)
   useEffect(() => {
     if (!user?.id) return;
 
     if (user.role === 'LANDLORD') {
-      // 🏘️ LANDLORD: Tyachya swatahcya properties ghene
       setIsFetching(true);
       fetch(`http://localhost:8080/api/properties/owner/${user.id}`)
         .then((res) => {
@@ -53,7 +52,6 @@ export default function DashboardPage() {
         .finally(() => setIsFetching(false));
 
     } else if (user.role === 'TENANT') {
-      // 💖 TENANT: Tyanchya saved (favorite) properties ghene
       setIsFetching(true);
       fetch(`http://localhost:8080/api/users/${user.id}/favorites-details?t=${new Date().getTime()}`)
         .then((res) => {
@@ -76,9 +74,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const isLandlord = user.role === 'LANDLORD';
   const isTenant = user.role === 'TENANT';
@@ -93,6 +89,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      
       <Navigation />
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -101,8 +98,6 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 mb-8">
           <div className="px-6 py-8">
             <div className="flex items-center">
-              
-             
               <div className="flex-shrink-0">
                 <div className={`h-20 w-20 rounded-full flex items-center justify-center overflow-hidden shadow-sm border-2 border-white ${
                   !user.avatar ? (isLandlord ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600') : 'bg-gray-100'
@@ -116,8 +111,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="ml-6 flex-1">
+                {/* 👈 🟢 VIP FIX: Welcome Message Update Kela */}
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Welcome back, {user.firstName}! 👋
+                  Welcome, {user.firstName} {user.lastName ? user.lastName : ''}! 👋
                 </h2>
                 <p className="text-gray-500 mt-1">
                   {isLandlord ? 'Manage your properties and track your rental business.' : 'Find the perfect home and manage your saved properties.'}
@@ -193,7 +189,7 @@ export default function DashboardPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Quick Actions (Takes 1 column on large screens) */}
+          {/* Quick Actions */}
           <div className="lg:col-span-1">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -256,7 +252,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 🌟 REAL LIST (Takes 2 columns) */}
+          {/* 🌟 REAL LIST */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">
@@ -280,18 +276,16 @@ export default function DashboardPage() {
                 <div className="p-8 text-center text-gray-500">Loading your data...</div>
               ) : isLandlord && properties.length > 0 ? (
                 
-                // ==========================
                 // 🏠 LANDLORD PROPERTIES 
-                // ==========================
                 <ul className="divide-y divide-gray-100">
                   {properties.slice(0, 3).map((property) => (
                     <li key={property.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center space-x-4">
-                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                           {property.images && property.images.length > 0 ? (
                             <img src={property.images[0]} alt={property.title} className="h-full w-full object-cover" />
                           ) : (
-                            <Home className="h-8 w-8 text-gray-400 m-auto mt-4" />
+                            <Home className="h-8 w-8 text-gray-400" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -330,18 +324,16 @@ export default function DashboardPage() {
                 
               ) : isTenant && savedProperties.length > 0 ? (
                 
-                // ==========================
                 // 💖 TENANT SAVED PROPERTIES 
-                // ==========================
                 <ul className="divide-y divide-gray-100">
                   {savedProperties.slice(0, 3).map((property) => (
                     <li key={property.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center space-x-4">
-                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                           {property.images && property.images.length > 0 ? (
                             <img src={property.images[0]} alt={property.title} className="h-full w-full object-cover" />
                           ) : (
-                            <Home className="h-8 w-8 text-gray-400 m-auto mt-4" />
+                            <Home className="h-8 w-8 text-gray-400" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -371,9 +363,7 @@ export default function DashboardPage() {
 
               ) : (
                 
-                // ==========================
                 // 🤷‍♂️ TENANT NO SAVED PROPERTIES
-                // ==========================
                 <div className="p-10 text-center">
                   <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium mb-1">Your wishlist is empty.</p>

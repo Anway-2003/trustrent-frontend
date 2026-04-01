@@ -10,15 +10,19 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+// 👈 🟢 VIP FIX: NextAuth मधून signOut इम्पोर्ट केलं
+import { signOut } from 'next-auth/react'; 
+
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoggedIn, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
+  // 👈 🟢 VIP FIX: हे फंक्शन आता async केलं आणि गुगल सेशन क्लिअर केलं
+  const handleLogout = async () => {
+    logout(); // तुझा जुना कोड जो LocalStorage उडवतो
+    await signOut({ callbackUrl: '/' }); // 👈 इथे '/' टाकलं, म्हणजे डायरेक्ट होम पेजवर जाईल!
   };
 
   const navLinkClass = (path: string) => `
@@ -31,7 +35,6 @@ export default function Navigation() {
   const getLogoLink = () => {
     if (!isLoggedIn) return '/';
     if (user?.role === 'ADMIN') return '/admin';
-    // 👈 FIX: Aata Landlord aso kiva Tenant, Logo var click kelyavar Dashboard open hoil
     return '/dashboard'; 
   };
 
@@ -60,7 +63,6 @@ export default function Navigation() {
                 {/* TENANT SATHI LINKS */}
                 {user?.role === 'TENANT' && (
                   <>
-                    {/* 👈 FIX: Tenant la Dashboard Tab add kela */}
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
                       <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
                     </Link>
@@ -79,14 +81,12 @@ export default function Navigation() {
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
                       <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
                     </Link>
-                    
                     <Link href="/properties" className={navLinkClass('/properties')}>
                       <Search className="h-4 w-4 mr-2" /> Browse
                     </Link>
                     <Link href="/my-properties" className={navLinkClass('/my-properties')}>
                       <Building className="h-4 w-4 mr-2" /> My Properties
                     </Link>
-                    
                     <Link href="/add-property" className={navLinkClass('/add-property')}>
                       <PlusCircle className="h-4 w-4 mr-2" /> List Property
                     </Link>
@@ -145,7 +145,6 @@ export default function Navigation() {
             <>
               {user?.role === 'TENANT' && (
                 <>
-                  {/* 👈 FIX: Mobile Menu madhe pan Tenant la Dashboard Tab add kela */}
                   <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                   <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
                   <Link href="/saved" className={navLinkClass('/saved')} onClick={() => setIsMobileMenuOpen(false)}>Saved Homes</Link>

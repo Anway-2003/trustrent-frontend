@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+// 👈 🟢 IMPORT NEXTAUTH PROVIDER
+import NextAuthProvider from "@/components/NextAuthProvider"; 
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,7 +83,11 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
       <body className="font-sans antialiased bg-gray-50">
-        {children}
+        {/* 👈 🟢 SAGYAT IMP: Purna children la NextAuthProvider madhe wrap kara */}
+        <NextAuthProvider>
+          {children}
+        </NextAuthProvider>
+        
         <Analytics />
         <SpeedInsights />
       </body>

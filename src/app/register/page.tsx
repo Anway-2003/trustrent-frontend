@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Home, Eye, EyeOff, User, Mail, Lock, Phone, MapPin, FileText, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { signIn } from 'next-auth/react';
 
 function RegisterForm() {
   const router = useRouter();
@@ -23,7 +24,7 @@ function RegisterForm() {
     bio: '',
     city: '',
     region: '',
-    country: 'India' // <-- Default country India keli ahe
+    country: 'India' // Default country set to India
   });
 
   // Handle search params safely
@@ -31,7 +32,7 @@ function RegisterForm() {
     const role = searchParams?.get('role') || '';
     setInitialRole(role);
     if (role) {
-      setFormData(prev => ({ ...prev, role: role.toUpperCase() })); // Backend sathi uppercase
+      setFormData(prev => ({ ...prev, role: role.toUpperCase() })); // Convert to uppercase for the backend
     }
   }, [searchParams]);
 
@@ -39,14 +40,14 @@ function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // NAVIN: Error chya sobat Success message sathi state
+  // State for error and success messages
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState(''); 
 
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      router.push('/properties');
+      router.push('/dashboard');
     }
   }, [authLoading, isLoggedIn, router]);
 
@@ -56,7 +57,7 @@ function RegisterForm() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+    // Clear error when the user starts typing
     if (error) setError('');
   };
 
@@ -84,7 +85,7 @@ function RegisterForm() {
     setSuccessMsg('');
 
     try {
-      // 1. Direct Spring Boot chya UserController la call
+      // Direct call to Spring Boot API
       const response = await fetch('http://localhost:8080/api/users', {
         method: 'POST',
         headers: {
@@ -95,7 +96,7 @@ function RegisterForm() {
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          role: formData.role.toUpperCase(), // Backend enum sathi
+          role: formData.role.toUpperCase(), // Backend expects uppercase enum
           phone: formData.phone,
           bio: formData.bio,
           city: formData.city,
@@ -104,12 +105,11 @@ function RegisterForm() {
         }),
       });
 
-      // 2. Jar HTTP status 200 OK kiwa 201 Created aala tar success
+      // If HTTP status is 200 OK or 201 Created, treat as success
       if (response.ok) {
-        // 👇 FIX: LocalStorage madhe save na karta direct Login page var redirect!
         setSuccessMsg('Account created successfully! Redirecting to login...');
         
-        // 2 second thambun nantar login page var pathavne (mhanje tyala success message disel)
+        // Wait 2 seconds before redirecting to allow the user to read the success message
         setTimeout(() => {
             router.push('/login');
         }, 2000);
@@ -118,13 +118,13 @@ function RegisterForm() {
         setError('Registration failed. Email might already be in use.');
       }
     } catch (err) {
-      setError('Connection error. Is the Spring Boot server running?');
+      setError('Connection error. Is the backend server running?');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Show loading spinner while checking auth
+  // Show loading spinner while checking authentication
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -154,19 +154,19 @@ function RegisterForm() {
         </p>
       </div>
 
-      {/* Form */}
+      {/* Form Container */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             
-            {/* 🔴 Error Message */}
+            {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}
               </div>
             )}
 
-            {/* 🟢 Success Message (Navin Add Kela) */}
+            {/* Success Message */}
             {successMsg && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm flex items-center">
                 <CheckCircle2 className="h-5 w-5 mr-2" />
@@ -238,7 +238,7 @@ function RegisterForm() {
                     value={formData.firstName}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Anway"
+                    placeholder="John"
                   />
                 </div>
               </div>
@@ -256,7 +256,7 @@ function RegisterForm() {
                     value={formData.lastName}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Bhau"
+                    placeholder="Doe"
                   />
                 </div>
               </div>
@@ -280,7 +280,7 @@ function RegisterForm() {
                   value={formData.email}
                   onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="anway@trustrent.com"
+                  placeholder="john@example.com"
                 />
               </div>
             </div>
@@ -442,7 +442,7 @@ function RegisterForm() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading || successMsg !== ''} // Success message aalyavar button disable thevne
+                disabled={isLoading || successMsg !== ''} // Disable button if success message is present
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
@@ -455,19 +455,47 @@ function RegisterForm() {
                 )}
               </button>
             </div>
-
-            {/* Terms */}
-            <div className="text-xs text-gray-500 text-center">
-              By registering you accept our{' '}
-              <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-                Terms of Service
-              </Link>
-              {' '}and the{' '}
-              <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
-                Privacy Policy
-              </Link>
-            </div>
           </form>
+
+          {/* Google Signup Button */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or register with</span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => signIn('google', { callbackUrl: '/login' })}
+                className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Sign up with Google
+              </button>
+            </div>
+          </div>
+
+          {/* Terms */}
+          <div className="mt-6 text-xs text-gray-500 text-center">
+            By registering you accept our{' '}
+            <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+              Terms of Service
+            </Link>
+            {' '}and the{' '}
+            <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </div>
