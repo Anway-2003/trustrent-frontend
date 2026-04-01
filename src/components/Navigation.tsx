@@ -40,6 +40,7 @@ export default function Navigation() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          
           <div className="flex items-center">
             <Link href={getLogoLink()} className="flex items-center gap-2 group">
               <div className="bg-blue-600 text-white p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
@@ -67,6 +68,7 @@ export default function Navigation() {
                     </Link>
                   </>
                 )}
+
                 {user?.role === 'LANDLORD' && (
                   <>
                     <Link href="/dashboard" className={navLinkClass('/dashboard')}>
@@ -83,24 +85,40 @@ export default function Navigation() {
                     </Link>
                   </>
                 )}
+
                 <div className="relative ml-4">
-                  <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 bg-white">
+                  <button 
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 bg-white"
+                  >
                     <Menu className="h-5 w-5 text-gray-600 ml-1" />
-                    <div className="bg-gray-100 p-1 rounded-full"><User className="h-5 w-5 text-gray-600" /></div>
+                    <div className="bg-gray-100 p-1 rounded-full">
+                      <User className="h-5 w-5 text-gray-600" />
+                    </div>
                   </button>
+
                   {isProfileMenuOpen && (
                     <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
-                      <Link href="/profile" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"><User className="h-4 w-4 mr-3 text-gray-400" /> My Profile</Link>
-                      <Link href="/feedback" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"><MessageSquareQuote className="h-4 w-4 mr-3 text-gray-400" /> Feedback</Link>
+                      <Link href="/profile" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-medium">
+                        <User className="h-4 w-4 mr-3 text-gray-400" /> My Profile
+                      </Link>
+                      <Link href="/feedback" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-medium">
+                        <MessageSquareQuote className="h-4 w-4 mr-3 text-gray-400" /> Feedback
+                      </Link>
                       <div className="border-t border-gray-100 my-1"></div>
-                      <button onClick={handleLogout} className="w-full text-left flex items-center px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4 mr-3" /> Logout</button>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left flex items-center px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" /> Logout
+                      </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/login" className="text-gray-600 font-semibold px-4 py-2 hover:text-gray-900">Login</Link>
+                <Link href="/login" className="text-gray-600 font-semibold px-4 py-2">Login</Link>
                 <Link href="/register" className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700">Sign Up</Link>
               </div>
             )}

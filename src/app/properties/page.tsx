@@ -23,7 +23,16 @@ export default function PropertiesPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trustrent-backend.onrender.com';
 
-  useEffect(() => { fetchProperties(); }, []);
+  useEffect(() => {
+    fetch(`${API_URL}/api/properties`)
+      .then(res => res.json())
+      .then(data => {
+        setProperties(data);
+        setFilteredProperties(data);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+  }, [API_URL]);
 
   useEffect(() => {
     let result = properties;
@@ -36,30 +45,15 @@ export default function PropertiesPage() {
     setFilteredProperties(result);
   }, [searchTerm, propertyType, maxRent, properties]);
 
-  const fetchProperties = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/properties`);
-      if (response.ok) {
-        const data = await response.json();
-        setProperties(data);
-        setFilteredProperties(data);
-      }
-    } catch (error) {
-      console.error('Error fetching properties:', error);
-    } finally { setIsLoading(false); }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <main className="max-w-7xl mx-auto py-8 px-6">
         <h1 className="text-3xl font-bold mb-8">Find Your Perfect Home</h1>
         
-        {/* Filters */}
         <div className="bg-white p-6 rounded-xl border mb-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <input placeholder="Location..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border p-2 rounded-md" />
-          <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="border p-2 rounded-md">
+          <input placeholder="Location..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border p-2 rounded-md w-full" />
+          <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="border p-2 rounded-md w-full">
             <option value="ALL">All Types</option>
             <option value="APARTMENT">Apartment</option>
             <option value="HOUSE">House</option>
@@ -70,14 +64,18 @@ export default function PropertiesPage() {
           </div>
         </div>
 
-        {/* Grid */}
-        {isLoading ? <div className="text-center py-20">Loading...</div> : (
+        {isLoading ? <div>Loading...</div> : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {filteredProperties.map((property) => (
               <Link key={property.id} href={`/properties/${property.id}`} className="group bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all">
-                <div className="relative h-60 bg-gray-100">
+                <div className="relative h-60 bg-gray-100 w-full">
                   {property.images && property.images.length > 0 ? (
-                    <Image src={property.images[0]} alt={property.title} fill className="object-cover" />
+                    <Image 
+                      src={property.images[0]} 
+                      alt={property.title} 
+                      fill 
+                      className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                    />
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400"><Home size={40} /></div>
                   )}
@@ -86,7 +84,7 @@ export default function PropertiesPage() {
                   <h3 className="text-xl font-bold flex items-center">{property.title} {property.ownerVerified && <BadgeCheck className="text-blue-500 ml-2" size={20} />}</h3>
                   <p className="text-gray-500 flex items-center mt-1"><MapPin size={16} className="mr-1" /> {property.city}</p>
                   <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                    <span className="text-2xl font-black text-blue-600">₹{property.monthlyRent.toLocaleString()}<span className="text-sm font-normal text-gray-500"> /mo</span></span>
+                    <span className="text-2xl font-black text-blue-600">₹{property.monthlyRent.toLocaleString()}</span>
                     {user?.role === 'TENANT' && <Heart className="text-gray-300 hover:text-red-500" />}
                   </div>
                 </div>

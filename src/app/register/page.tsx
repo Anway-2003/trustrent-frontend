@@ -13,9 +13,8 @@ function RegisterForm() {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: '', password: '', confirmPassword: '',
-    firstName: '', lastName: '', role: '',
-    phone: '', bio: '', city: '', region: '', country: 'India'
+    email: '', password: '', confirmPassword: '', firstName: '', lastName: '',
+    role: '', phone: '', bio: '', city: '', region: '', country: 'India'
   });
 
   useEffect(() => {
@@ -26,7 +25,6 @@ function RegisterForm() {
   }, [searchParams]);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState(''); 
@@ -51,7 +49,7 @@ function RegisterForm() {
     }
     setIsLoading(true);
     setError('');
-    
+
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trustrent-backend.onrender.com';
       const response = await fetch(`${API_URL}/api/users`, {
@@ -64,39 +62,40 @@ function RegisterForm() {
         setSuccessMsg('Account created successfully!');
         setTimeout(() => router.push('/login'), 2000);
       } else {
-        setError('Registration failed. Email might be in use.');
+        setError('Registration failed.');
       }
-    } catch (_err) {
-      setError('Connection error. Please try again.');
+    } catch (_err) { // Underscore to ignore unused variable
+      setError('Connection error.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-flex items-center text-2xl font-bold"><Home className="h-8 w-8 text-blue-600 mr-2" /> TrustRent</Link>
-        <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
+        <Link href="/" className="inline-flex items-center text-2xl font-bold">
+          <Home className="h-8 w-8 text-blue-600 mr-2" /> TrustRent
+        </Link>
+        <h2 className="mt-6 text-3xl font-extrabold text-gray-900 text-center">Create account</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-10 shadow rounded-lg">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">{error}</div>}
-            {successMsg && <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm flex items-center"><CheckCircle2 className="h-5 w-5 mr-2" /> {successMsg}</div>}
+            {successMsg && <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm">{successMsg}</div>}
             
-            {/* Role Selection */}
             <div className="grid grid-cols-2 gap-3">
               <label className="cursor-pointer">
                 <input type="radio" name="role" value="TENANT" checked={formData.role === 'TENANT'} onChange={handleChange} className="sr-only" />
-                <div className={`border-2 rounded-lg p-3 text-center ${formData.role === 'TENANT' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200'}`}>Tenant</div>
+                <div className={`border-2 rounded-lg p-3 text-center ${formData.role === 'TENANT' ? 'border-blue-500 bg-blue-50' : ''}`}>Tenant</div>
               </label>
               <label className="cursor-pointer">
                 <input type="radio" name="role" value="LANDLORD" checked={formData.role === 'LANDLORD'} onChange={handleChange} className="sr-only" />
-                <div className={`border-2 rounded-lg p-3 text-center ${formData.role === 'LANDLORD' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200'}`}>Landlord</div>
+                <div className={`border-2 rounded-lg p-3 text-center ${formData.role === 'LANDLORD' ? 'border-green-500 bg-green-50' : ''}`}>Landlord</div>
               </label>
             </div>
 
@@ -112,17 +111,12 @@ function RegisterForm() {
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
 
-            <div className="relative">
-              <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" required value={formData.confirmPassword} onChange={handleChange} className="w-full border p-2 rounded-md" />
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 text-gray-400">{showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-            </div>
-
-            <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700">
+            <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white py-2 rounded-md font-bold">
               {isLoading ? 'Registering...' : 'Sign up'}
             </button>
           </form>
           <div className="mt-6">
-            <button onClick={() => signIn('google', { callbackUrl: '/login' })} className="w-full flex justify-center items-center border p-2 rounded-md hover:bg-gray-50">Sign up with Google</button>
+            <button onClick={() => signIn('google', { callbackUrl: '/login' })} className="w-full flex justify-center items-center border p-2 rounded-md">Sign up with Google</button>
           </div>
         </div>
       </div>

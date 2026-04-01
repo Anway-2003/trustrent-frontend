@@ -17,13 +17,20 @@ export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, salt);
 };
 
-export const comparePasswords = async (password: string, hashedPassword: string): Promise<boolean> => {
+export const comparePasswords = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
 export const generateToken = (user: Pick<User, 'id' | 'email' | 'role'>): string => {
   return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
   );
@@ -39,13 +46,16 @@ export const verifyToken = (token: string): { id: string; email: string; role: s
 
 export const getTokenFromRequest = (request: Request): string | null => {
   const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
   return authHeader.substring(7);
 };
 
 export const getCurrentUser = async (request: Request) => {
   const token = getTokenFromRequest(request);
   if (!token) return null;
+
   const decoded = verifyToken(token);
-  return decoded || null;
+  return decoded;
 };
