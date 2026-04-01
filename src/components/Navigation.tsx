@@ -9,8 +9,6 @@ import {
   Search, LayoutDashboard 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-
-// 👈 🟢 VIP FIX: NextAuth मधून signOut इम्पोर्ट केलं
 import { signOut } from 'next-auth/react'; 
 
 export default function Navigation() {
@@ -19,10 +17,9 @@ export default function Navigation() {
   const { user, isLoggedIn, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 👈 🟢 VIP FIX: हे फंक्शन आता async केलं आणि गुगल सेशन क्लिअर केलं
   const handleLogout = async () => {
-    logout(); // तुझा जुना कोड जो LocalStorage उडवतो
-    await signOut({ callbackUrl: '/' }); // 👈 इथे '/' टाकलं, म्हणजे डायरेक्ट होम पेजवर जाईल!
+    logout(); 
+    await signOut({ callbackUrl: '/' }); 
   };
 
   const navLinkClass = (path: string) => `
@@ -60,6 +57,11 @@ export default function Navigation() {
             
             {isLoggedIn ? (
               <>
+                {/* Home Button for Logged-in Users */}
+                <Link href="/" className={navLinkClass('/')}>
+                  <Home className="h-4 w-4 mr-2" /> Home
+                </Link>
+
                 {/* TENANT SATHI LINKS */}
                 {user?.role === 'TENANT' && (
                   <>
@@ -115,11 +117,15 @@ export default function Navigation() {
               </>
             ) : (
               /* GUESTS SATHI */
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                {/* Home Button for Guests */}
+                <Link href="/" className="text-gray-600 hover:text-gray-900 font-semibold px-4 py-2 flex items-center">
+                  <Home className="h-4 w-4 mr-1.5" /> Home
+                </Link>
                 <Link href="/login" className="text-gray-600 hover:text-gray-900 font-semibold px-4 py-2">
                   Login
                 </Link>
-                <Link href="/register" className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700 transition-all shadow-sm">
+                <Link href="/register" className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700 transition-all shadow-sm ml-2">
                   Sign Up Free
                 </Link>
               </div>
@@ -143,28 +149,49 @@ export default function Navigation() {
         <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-2 pb-6 space-y-2 shadow-lg absolute w-full">
           {isLoggedIn ? (
             <>
+              {/* Home Link for Mobile (Logged In) */}
+              <Link href="/" className={navLinkClass('/')} onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="flex items-center"><Home className="h-4 w-4 mr-2" /> Home</div>
+              </Link>
+
               {user?.role === 'TENANT' && (
                 <>
-                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
-                  <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
-                  <Link href="/saved" className={navLinkClass('/saved')} onClick={() => setIsMobileMenuOpen(false)}>Saved Homes</Link>
+                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard</div>
+                  </Link>
+                  <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><Search className="h-4 w-4 mr-2" /> Browse Properties</div>
+                  </Link>
+                  <Link href="/saved" className={navLinkClass('/saved')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><Heart className="h-4 w-4 mr-2" /> Saved Homes</div>
+                  </Link>
                 </>
               )}
               {user?.role === 'LANDLORD' && (
                 <>
-                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
-                  <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>Browse Properties</Link>
-                  <Link href="/my-properties" className={navLinkClass('/my-properties')} onClick={() => setIsMobileMenuOpen(false)}>My Properties</Link>
+                  <Link href="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard</div>
+                  </Link>
+                  <Link href="/properties" className={navLinkClass('/properties')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><Search className="h-4 w-4 mr-2" /> Browse Properties</div>
+                  </Link>
+                  <Link href="/my-properties" className={navLinkClass('/my-properties')} onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center"><Building className="h-4 w-4 mr-2" /> My Properties</div>
+                  </Link>
                   <Link href="/add-property" className={navLinkClass('/add-property')} onClick={() => setIsMobileMenuOpen(false)}>
                     <div className="flex items-center"><PlusCircle className="h-4 w-4 mr-2" /> List Property</div>
                   </Link>
                 </>
               )}
               {user?.role === 'ADMIN' && (
-                <Link href="/admin" className={navLinkClass('/admin')} onClick={() => setIsMobileMenuOpen(false)}>Admin Panel</Link>
+                <Link href="/admin" className={navLinkClass('/admin')} onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center"><ShieldCheck className="h-4 w-4 mr-2" /> Admin Panel</div>
+                </Link>
               )}
               <div className="border-t border-gray-100 my-2 pt-2">
-                <Link href="/profile" className={navLinkClass('/profile')} onClick={() => setIsMobileMenuOpen(false)}>My Profile</Link>
+                <Link href="/profile" className={navLinkClass('/profile')} onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center"><User className="h-4 w-4 mr-2" /> My Profile</div>
+                </Link>
                 <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50">
                   <LogOut className="h-4 w-4 mr-2" /> Logout
                 </button>
@@ -172,10 +199,14 @@ export default function Navigation() {
             </>
           ) : (
             <div className="flex flex-col space-y-3 pt-2">
-              <Link href="/login" className="w-full text-center border border-gray-300 text-gray-700 px-4 py-3 rounded-lg font-bold" onClick={() => setIsMobileMenuOpen(false)}>
+              {/* Home Link for Mobile (Guest) */}
+              <Link href="/" className="w-full text-center border border-gray-100 text-gray-700 hover:bg-gray-50 flex items-center justify-center px-4 py-3 rounded-lg font-bold" onClick={() => setIsMobileMenuOpen(false)}>
+                <Home className="h-4 w-4 mr-2" /> Home
+              </Link>
+              <Link href="/login" className="w-full text-center border border-gray-300 text-gray-700 flex justify-center items-center px-4 py-3 rounded-lg font-bold" onClick={() => setIsMobileMenuOpen(false)}>
                 Login
               </Link>
-              <Link href="/register" className="w-full text-center bg-blue-600 text-white px-4 py-3 rounded-lg font-bold shadow-sm" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link href="/register" className="w-full text-center bg-blue-600 text-white flex justify-center items-center px-4 py-3 rounded-lg font-bold shadow-sm" onClick={() => setIsMobileMenuOpen(false)}>
                 Sign Up
               </Link>
             </div>
