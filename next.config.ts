@@ -1,10 +1,10 @@
-import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+
+const nextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
 
-  // 🟢 VERCEL BUILD FIX: हे टाकल्यामुळे आता Vercel कोणतेही छोटे एरर्स काढून बिल्ड फेल करणार नाही
+  // 🟢 VERCEL BUILD FIX
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,9 +14,7 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    // गुगलचे प्रोफाईल फोटोज दिसण्यासाठी 'lh3.googleusercontent.com' ॲड केले आहे
     domains: ['localhost', 'trustrent.com', 'lh3.googleusercontent.com'], 
-    // Disable image optimization in Docker for better compatibility
     unoptimized: process.env.NODE_ENV === 'production',
   },
   
@@ -47,8 +45,6 @@ const nextConfig: NextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  
-  // 🔴 PRISMA REMOVED: इथून जुना Prisma चा कोड काढून टाकला आहे कारण आपण ते वापरत नाही.
 };
 
 export default nextConfig;
