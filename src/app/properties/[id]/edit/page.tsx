@@ -81,7 +81,7 @@ export default function EditPropertyPage({ params }: EditPageProps) {
 
   const fetchPropertyDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/properties/${id}`);
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties/${id}`);
       if (!response.ok) throw new Error('Property not found');
       
       const data = await response.json();
@@ -175,7 +175,7 @@ export default function EditPropertyPage({ params }: EditPageProps) {
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/properties/${id}`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties/${id}`, {
         method: 'PUT', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload), // Send the corrected payload

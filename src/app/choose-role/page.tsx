@@ -14,7 +14,7 @@ export default function ChooseRolePage() {
     
     try {
       // 👈 🟢 VIP FIX: Backend ला Role Update करण्यासाठी API Call
-      const response = await fetch('http://localhost:8080/api/auth/update-role', {
+      const response = await fetch('https://trustrent-backend.onrender.com/api/auth/update-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

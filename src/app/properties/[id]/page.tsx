@@ -85,7 +85,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch(`http://localhost:8080/api/properties/${id}`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties/${id}`, {
         cache: 'no-store' 
       });
       if (!response.ok) throw new Error('Property not found');
@@ -101,7 +101,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   const checkIfFavorite = async () => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}/favorites?t=${new Date().getTime()}`);
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/users/${user.id}/favorites?t=${new Date().getTime()}`);
       if (response.ok) {
         const savedPropertyIds = await response.json();
         setIsFavorite(savedPropertyIds.includes(id));
@@ -115,7 +115,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     setIsFavoriteLoading(true);
     try {
       const method = isFavorite ? 'DELETE' : 'POST';
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}/favorites/${id}`, { method });
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/users/${user.id}/favorites/${id}`, { method });
       if (response.ok) setIsFavorite(!isFavorite);
     } catch (err) { console.error(err); } 
     finally { setIsFavoriteLoading(false); }

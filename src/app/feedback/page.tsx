@@ -24,7 +24,7 @@ export default function FeedbackPage() {
     setIsSubmitting(true);
 
     // TODO: Spring Boot Backend API call will go here
-    // Example: await fetch('http://localhost:8080/api/feedback', { ... })
+    // Example: await fetch('https://trustrent-backend.onrender.com/api/feedback', { ... })
     
     // Simulate API delay
     setTimeout(() => {

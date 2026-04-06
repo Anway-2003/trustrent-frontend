@@ -106,7 +106,7 @@ export default function AddPropertyPage() {
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/properties`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties`, {
         method: 'POST', // 👈 POST mhanje navin banavne
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

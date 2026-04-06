@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
     if (user.role === 'LANDLORD') {
       setIsFetching(true);
-      fetch(`http://localhost:8080/api/properties/owner/${user.id}`)
+      fetch(`https://trustrent-backend.onrender.com/api/properties/owner/${user.id}`)
         .then((res) => {
           if (!res.ok) throw new Error('Network error');
           return res.json();
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
     } else if (user.role === 'TENANT') {
       setIsFetching(true);
-      fetch(`http://localhost:8080/api/users/${user.id}/favorites-details?t=${new Date().getTime()}`)
+      fetch(`https://trustrent-backend.onrender.com/api/users/${user.id}/favorites-details?t=${new Date().getTime()}`)
         .then((res) => {
           if (!res.ok) throw new Error('Network error');
           return res.json();

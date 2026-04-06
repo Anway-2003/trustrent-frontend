@@ -53,7 +53,7 @@ export default function MyPropertiesPage() {
 
     try {
       // Backend API Call for Landlord's properties
-      const response = await fetch(`http://localhost:8080/api/properties/owner/${user?.id}`);
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties/owner/${user?.id}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -73,7 +73,7 @@ export default function MyPropertiesPage() {
   const togglePropertyAvailability = async (propertyId: string, currentStatus: boolean) => {
     try {
       // 1. Aadhi backend kadhun tya property cha PURNA (Full) data ghene
-      const getResponse = await fetch(`http://localhost:8080/api/properties/${propertyId}`);
+      const getResponse = await fetch(`https://trustrent-backend.onrender.com/api/properties/${propertyId}`);
       if (!getResponse.ok) {
         alert("Property cha data ghetana error aala!");
         return;
@@ -85,7 +85,7 @@ export default function MyPropertiesPage() {
       fullPropertyData.available = !currentStatus;
 
       // 3. Aata ha purna pure data parat backend la pathvane
-      const putResponse = await fetch(`http://localhost:8080/api/properties/${propertyId}`, {
+      const putResponse = await fetch(`https://trustrent-backend.onrender.com/api/properties/${propertyId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fullPropertyData),
@@ -111,7 +111,7 @@ export default function MyPropertiesPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/properties/${propertyId}`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/properties/${propertyId}`, {
         method: 'DELETE'
       });
 

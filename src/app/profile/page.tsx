@@ -106,7 +106,7 @@ export default function ProfilePage() {
 
     try {
       // Connect to Spring Boot Backend
-      const response = await fetch(`http://localhost:8080/api/users/${user?.id}`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/users/${user?.id}`, {
         method: 'PUT',
         headers: { 
   'Content-Type': 'application/json'

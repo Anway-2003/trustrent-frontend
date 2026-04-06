@@ -67,7 +67,7 @@ function ChatContent() {
   // Demo sathi aapan saglya users madhun target user shodhtoy
   const fetchTargetUserDetails = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/users');
+      const response = await fetch('https://trustrent-backend.onrender.com/api/users');
       if (response.ok) {
         const allUsers: User[] = await response.json();
         const foundUser = allUsers.find(u => u.id === targetUserId);
@@ -81,7 +81,7 @@ function ChatContent() {
   const fetchChatHistory = async () => {
     if (!currentUser?.id || !targetUserId) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/messages/history/${currentUser.id}/${targetUserId}`);
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/messages/history/${currentUser.id}/${targetUserId}`);
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
@@ -101,7 +101,7 @@ function ChatContent() {
     setNewMessage(''); // Input lagech rikam karne fast feeling sathi
 
     try {
-      const response = await fetch('http://localhost:8080/api/messages', {
+      const response = await fetch('https://trustrent-backend.onrender.com/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

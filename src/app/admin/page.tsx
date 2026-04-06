@@ -37,7 +37,7 @@ export default function AdminDashboard() {
     setIsLoading(true);
     try {
       // Backend madhun khare users ghene
-      const response = await fetch('http://localhost:8080/api/users');
+      const response = await fetch('https://trustrent-backend.onrender.com/api/users');
       if (response.ok) {
         const data = await response.json();
         setUsersList(data); // Real Database data set kela!
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
     try {
       // Spring Boot la update pathavne
-      const response = await fetch(`http://localhost:8080/api/users/${userId}/verify`, {
+      const response = await fetch(`https://trustrent-backend.onrender.com/api/users/${userId}/verify`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verified: !currentStatus })
