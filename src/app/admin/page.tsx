@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Users, Building, ShieldCheck, CheckCircle, 
-  XCircle, Search, UserCheck, AlertTriangle, ArrowLeft
+  XCircle, Search, UserCheck, AlertTriangle, ArrowLeft, ExternalLink // 👈 ExternalLink ॲड केलं
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
@@ -18,6 +18,7 @@ interface AppUser {
   role: string;
   verified: boolean;
   createdAt: string;
+  govIdUrl?: string; // 👈 नवीन: डॉक्युमेंट लिंकसाठी
 }
 
 export default function AdminDashboard() {
@@ -36,31 +37,27 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      // Backend madhun khare users ghene
       const response = await fetch('https://trustrent-backend.onrender.com/api/users');
       if (response.ok) {
         const data = await response.json();
-        setUsersList(data); // Real Database data set kela!
+        setUsersList(data); 
       } else {
-        // 👇 EXACT ERROR PRINT KARNYASTHI HE ADD KELAY
         const errorText = await response.text();
         console.error(`🚨 Backend Error! Status: ${response.status}, Details: ${errorText}`);
-        setUsersList([]); // Dummy data kadhun takla
+        setUsersList([]); 
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      setUsersList([]); // Backend band asel tar empty disel
+      setUsersList([]); 
     } finally {
       setIsLoading(false);
     }
   };
 
-  // User la Verify / Unverify karnyacha function (Strict DB Update)
   const toggleVerification = async (userId: string, currentStatus: boolean) => {
     if (!confirm(`Are you sure you want to ${currentStatus ? 'Unverify' : 'Verify'} this user?`)) return;
 
     try {
-      // Spring Boot la update pathavne
       const response = await fetch(`https://trustrent-backend.onrender.com/api/users/${userId}/verify`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -68,7 +65,6 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        // DB madhe update jhalyavarach UI badlaycha!
         setUsersList(prev => prev.map(u => 
           u.id === userId ? { ...u, verified: !currentStatus } : u
         ));
@@ -81,9 +77,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Search & Filter Logic
   const filteredUsers = usersList.filter(u => {
-    // 👇 HI NAVIN LINE: Jar role ADMIN asel tar tyala list madhun hide kar
     if (u.role === 'ADMIN') return false;
 
     const matchesSearch = (u.firstName + ' ' + u.lastName + ' ' + u.email).toLowerCase().includes(searchTerm.toLowerCase());
@@ -91,7 +85,6 @@ export default function AdminDashboard() {
     return matchesSearch && matchesRole;
   });
 
-  // Stats calculation
   const totalLandlords = filteredUsers.filter(u => u.role === 'LANDLORD').length;
   const totalTenants = filteredUsers.filter(u => u.role === 'TENANT').length;
   const pendingVerifications = filteredUsers.filter(u => !u.verified).length;
@@ -102,7 +95,6 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
 
-      {/* Admin Header */}
       <div className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -122,7 +114,6 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
         
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
             <div className="h-12 w-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4">
@@ -155,7 +146,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* User Management Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
@@ -164,7 +154,6 @@ export default function AdminDashboard() {
             </h2>
             
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input 
@@ -176,7 +165,6 @@ export default function AdminDashboard() {
                 />
               </div>
               
-              {/* Role Filter */}
               <select 
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
@@ -189,25 +177,26 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider">
                   <th className="p-4 font-semibold">User Details</th>
                   <th className="p-4 font-semibold">Role</th>
+                  <th className="p-4 font-semibold">Gov ID Document</th> {/* 👈 नवीन कॉलम */}
                   <th className="p-4 font-semibold">Status</th>
                   <th className="p-4 font-semibold text-right">Admin Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {isLoading ? (
-                  <tr><td colSpan={4} className="text-center p-8 text-gray-500">Loading DB data...</td></tr>
+                  <tr><td colSpan={5} className="text-center p-8 text-gray-500">Loading DB data...</td></tr>
                 ) : filteredUsers.length === 0 ? (
-                  <tr><td colSpan={4} className="text-center p-8 text-gray-500">No users found. (Create an account first)</td></tr>
+                  <tr><td colSpan={5} className="text-center p-8 text-gray-500">No users found.</td></tr>
                 ) : (
                   filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                    // जर डॉक्युमेंट दिलं असेल आणि Verify नसेल, तर थोडा ब्लू बॅकग्राऊंड दाखवा
+                    <tr key={u.id} className={`${u.govIdUrl && !u.verified ? 'bg-blue-50/40' : 'hover:bg-gray-50'} transition-colors`}>
                       <td className="p-4">
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-3">
@@ -226,6 +215,23 @@ export default function AdminDashboard() {
                           {u.role}
                         </span>
                       </td>
+
+                      {/* 👈 नवीन: Gov ID ची लिंक 🟢 */}
+                      <td className="p-4">
+                        {u.govIdUrl ? (
+                          <a 
+                            href={u.govIdUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-bold text-sm flex items-center"
+                          >
+                            View ID <ExternalLink className="h-4 w-4 ml-1" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-sm">Not Uploaded</span>
+                        )}
+                      </td>
+
                       <td className="p-4">
                         {u.verified ? (
                           <span className="flex items-center text-xs font-bold text-green-600">
