@@ -21,18 +21,43 @@ export default function FeedbackPage() {
       return;
     }
 
+    if (!user) {
+      alert("User not found. Please login again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // TODO: Spring Boot Backend API call will go here
-    // Example: await fetch('https://trustrent-backend.onrender.com/api/feedback', { ... })
-    
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      // 🟢 खरा Spring Boot API Call 🟢
+      const response = await fetch('https://trustrent-backend.onrender.com/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          giverId: user.id,
+          receiverId: user.id, // Platform review असल्यामुळे स्वतःचाच ID receiver म्हणून पाठवलाय
+          rating: rating.toString(),
+          comment: message,
+          type: "PLATFORM_REVIEW"
+        }),
+      });
+
+      if (response.ok) {
+        setIsSuccess(true);
+        setRating(0);
+        setMessage('');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to submit: ${errorData.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("Connection error! Is your backend running?");
+    } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
-      setRating(0);
-      setMessage('');
-    }, 1500);
+    }
   };
 
   return (
